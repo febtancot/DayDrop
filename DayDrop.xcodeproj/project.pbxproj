@@ -1,0 +1,614 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00525B0FDA3EB89BCA843445 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9192C6D2A4FB481C6EA6C6B5 /* OnboardingView.swift */; };
+		01967B35BA8BFA9B0496FEA0 /* ArchiveTargetOwnershipPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7F5BE79DBDA4942F051D6E /* ArchiveTargetOwnershipPolicyTests.swift */; };
+		0914228DCF619F8517B5CEA0 /* ArchiveDayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29A40F58B6AAF696797D5EE2 /* ArchiveDayTests.swift */; };
+		179A6A4F3B84E21310CBC206 /* ArchiveEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282B8CB471EE2B4DD5959590 /* ArchiveEngine.swift */; };
+		215D36E6F1E43C8695359B51 /* DayDropCompactToggleStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D444756A6A8B747A155784E /* DayDropCompactToggleStyle.swift */; };
+		2AE380B070F2511458A03A78 /* ArchiveDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 531E9AC14E97B8EC4624A474 /* ArchiveDay.swift */; };
+		2CB2F0C728168B0E348AA68F /* ExistingFileDateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1996BEEEB293E398D908C932 /* ExistingFileDateResolver.swift */; };
+		2DA78CCB020E93C8009FEC78 /* DirectoryEventMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12E62542054D55F0FD94AD1 /* DirectoryEventMonitorTests.swift */; };
+		34396CCFA267EDA78E9DF84E /* DirectoryEventMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653569ED6FB6B7F2371F314 /* DirectoryEventMonitor.swift */; };
+		3746FEECF900CC21A2D18393 /* FileCandidateScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1818CAB5DFFEB126751526C9 /* FileCandidateScannerTests.swift */; };
+		3BC67300D4778F5DA7FB76E7 /* DownloadCandidatePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CE292D61DDFAEFD2D636E07 /* DownloadCandidatePolicyTests.swift */; };
+		3DE1F373474496AA5686FA78 /* DownloadCandidatePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8C6068DCF88B066665F080 /* DownloadCandidatePolicy.swift */; };
+		494B737F35FCC7619A58CA78 /* LocalMetadataStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999DB47D4B664FF26C6F03BC /* LocalMetadataStoreTests.swift */; };
+		4B30D7C49FD831CBB5841837 /* ArchivePathRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BAA36BA656F2761207C1C01 /* ArchivePathRouterTests.swift */; };
+		4ED851D3F3F5FE873C405AE2 /* ExistingFileDateResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92D97D82AE48E6D582F6AF7B /* ExistingFileDateResolverTests.swift */; };
+		6181820ABDFCBBED344EFD59 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7E0DDEF5E0F2A380B4791658 /* Assets.xcassets */; };
+		686EBF1F72F55DC437E090E5 /* DownloadsBookmarkStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1719A85DB8E07586CBCABC /* DownloadsBookmarkStoreTests.swift */; };
+		6F6626F66174C559A6BB765B /* ArchiveEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97D819243CE94B5B41FD6B49 /* ArchiveEngineTests.swift */; };
+		7DE665848B6B95B1D67088C2 /* DownloadsBookmarkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6C6D33574C2C99F26F325C5 /* DownloadsBookmarkStore.swift */; };
+		7E13837C1331C6620E108836 /* RecentActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A18000441BF66A1CC61632C6 /* RecentActivityView.swift */; };
+		8BE7D4D01CCE23947D2D335C /* FileSizeStabilityTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16BF5DB6376FAA5119A11F90 /* FileSizeStabilityTracker.swift */; };
+		93073EF348EA67C1737223A7 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB77B2A2A64A84DF66FD2DEF /* MenuBarView.swift */; };
+		97961BD641B20E065CD3CF49 /* CollisionNameResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8228BF4BF308ABCD76CF32C0 /* CollisionNameResolver.swift */; };
+		A89681319E0BFBDE40F5C177 /* FileCandidateScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3820F4D7702C40C9107B621C /* FileCandidateScanner.swift */; };
+		A934E4EA7752E5DC542C5240 /* ArchivePathRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71BC0BC8CD539BB24A79A1E8 /* ArchivePathRouter.swift */; };
+		AB661D318FA23C8F42862818 /* CollisionNameResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86BC376406FEBEC7B62E5DBD /* CollisionNameResolverTests.swift */; };
+		ABAF70AA1D522400480FFEB0 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C78B055DBB1F7D4DEC2109 /* LoginItemService.swift */; };
+		B3CCCB0445AC5E1B71F281E4 /* BatchNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 529479DBFBCD04F218D35435 /* BatchNotificationService.swift */; };
+		C0F09A4904EBC691E58212C0 /* DayDropController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDA11243B45BDB99345C28E /* DayDropController.swift */; };
+		C551E8368638E6D7F4785C63 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79D43D37C0B4C918BA15A741 /* SettingsView.swift */; };
+		C58802E7E6532C8C931CE451 /* LocalMetadataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 350A7FF3F6F6173CAEE8B3AA /* LocalMetadataStore.swift */; };
+		EE2554D2B89DC3C4F61E961F /* DayDropApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EBE187B958AF3EFFFF898E0 /* DayDropApp.swift */; };
+		F5C54FF0E1E7192CC0DAE24A /* FileSizeStabilityTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 862B022164A5E72F870139F0 /* FileSizeStabilityTrackerTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1BEE521C114660C8B794B8A3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5967DBBD1C1E0FB5A2E768D3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6F8ED35F337C140B5AA0C589;
+			remoteInfo = DayDrop;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		03CC1AE9DDC1E55313ABC7B7 /* DayDropTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DayDropTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0BAA36BA656F2761207C1C01 /* ArchivePathRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePathRouterTests.swift; sourceTree = "<group>"; };
+		0D444756A6A8B747A155784E /* DayDropCompactToggleStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropCompactToggleStyle.swift; sourceTree = "<group>"; };
+		16BF5DB6376FAA5119A11F90 /* FileSizeStabilityTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSizeStabilityTracker.swift; sourceTree = "<group>"; };
+		1818CAB5DFFEB126751526C9 /* FileCandidateScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileCandidateScannerTests.swift; sourceTree = "<group>"; };
+		1996BEEEB293E398D908C932 /* ExistingFileDateResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExistingFileDateResolver.swift; sourceTree = "<group>"; };
+		282B8CB471EE2B4DD5959590 /* ArchiveEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveEngine.swift; sourceTree = "<group>"; };
+		29A40F58B6AAF696797D5EE2 /* ArchiveDayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveDayTests.swift; sourceTree = "<group>"; };
+		2C1719A85DB8E07586CBCABC /* DownloadsBookmarkStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsBookmarkStoreTests.swift; sourceTree = "<group>"; };
+		350A7FF3F6F6173CAEE8B3AA /* LocalMetadataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMetadataStore.swift; sourceTree = "<group>"; };
+		3820F4D7702C40C9107B621C /* FileCandidateScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileCandidateScanner.swift; sourceTree = "<group>"; };
+		43C78B055DBB1F7D4DEC2109 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
+		529479DBFBCD04F218D35435 /* BatchNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchNotificationService.swift; sourceTree = "<group>"; };
+		531E9AC14E97B8EC4624A474 /* ArchiveDay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveDay.swift; sourceTree = "<group>"; };
+		6376A464D9EDA8F940C66061 /* DayDrop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DayDrop.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6D7F5BE79DBDA4942F051D6E /* ArchiveTargetOwnershipPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveTargetOwnershipPolicyTests.swift; sourceTree = "<group>"; };
+		71BC0BC8CD539BB24A79A1E8 /* ArchivePathRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePathRouter.swift; sourceTree = "<group>"; };
+		79D43D37C0B4C918BA15A741 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		7E0DDEF5E0F2A380B4791658 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8228BF4BF308ABCD76CF32C0 /* CollisionNameResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionNameResolver.swift; sourceTree = "<group>"; };
+		862B022164A5E72F870139F0 /* FileSizeStabilityTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSizeStabilityTrackerTests.swift; sourceTree = "<group>"; };
+		86BC376406FEBEC7B62E5DBD /* CollisionNameResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionNameResolverTests.swift; sourceTree = "<group>"; };
+		8CE292D61DDFAEFD2D636E07 /* DownloadCandidatePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadCandidatePolicyTests.swift; sourceTree = "<group>"; };
+		8EBE187B958AF3EFFFF898E0 /* DayDropApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropApp.swift; sourceTree = "<group>"; };
+		9192C6D2A4FB481C6EA6C6B5 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		91C40E96A1F80C8F2B4903BE /* DayDrop.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DayDrop.entitlements; sourceTree = "<group>"; };
+		92D97D82AE48E6D582F6AF7B /* ExistingFileDateResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExistingFileDateResolverTests.swift; sourceTree = "<group>"; };
+		9653569ED6FB6B7F2371F314 /* DirectoryEventMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryEventMonitor.swift; sourceTree = "<group>"; };
+		97D819243CE94B5B41FD6B49 /* ArchiveEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveEngineTests.swift; sourceTree = "<group>"; };
+		999DB47D4B664FF26C6F03BC /* LocalMetadataStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMetadataStoreTests.swift; sourceTree = "<group>"; };
+		9C8C6068DCF88B066665F080 /* DownloadCandidatePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadCandidatePolicy.swift; sourceTree = "<group>"; };
+		A18000441BF66A1CC61632C6 /* RecentActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentActivityView.swift; sourceTree = "<group>"; };
+		AB77B2A2A64A84DF66FD2DEF /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		C63474F8E496204470EE91AB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E12E62542054D55F0FD94AD1 /* DirectoryEventMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryEventMonitorTests.swift; sourceTree = "<group>"; };
+		F6C6D33574C2C99F26F325C5 /* DownloadsBookmarkStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsBookmarkStore.swift; sourceTree = "<group>"; };
+		FDDA11243B45BDB99345C28E /* DayDropController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropController.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		04E5EE324B5241C95263CA5D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6376A464D9EDA8F940C66061 /* DayDrop.app */,
+				03CC1AE9DDC1E55313ABC7B7 /* DayDropTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		15CF4878829DAEE17A9AB870 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				7E0DDEF5E0F2A380B4791658 /* Assets.xcassets */,
+				91C40E96A1F80C8F2B4903BE /* DayDrop.entitlements */,
+				C63474F8E496204470EE91AB /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		1F2F2EFD2226D58DFDD61DAA /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				531E9AC14E97B8EC4624A474 /* ArchiveDay.swift */,
+				71BC0BC8CD539BB24A79A1E8 /* ArchivePathRouter.swift */,
+				8228BF4BF308ABCD76CF32C0 /* CollisionNameResolver.swift */,
+				9C8C6068DCF88B066665F080 /* DownloadCandidatePolicy.swift */,
+				1996BEEEB293E398D908C932 /* ExistingFileDateResolver.swift */,
+				16BF5DB6376FAA5119A11F90 /* FileSizeStabilityTracker.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		60E43A1B352FF110D9DD7CEC /* Integration */ = {
+			isa = PBXGroup;
+			children = (
+				97D819243CE94B5B41FD6B49 /* ArchiveEngineTests.swift */,
+				1818CAB5DFFEB126751526C9 /* FileCandidateScannerTests.swift */,
+			);
+			path = Integration;
+			sourceTree = "<group>";
+		};
+		9112A586684BE4A7465CCB63 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				529479DBFBCD04F218D35435 /* BatchNotificationService.swift */,
+				9653569ED6FB6B7F2371F314 /* DirectoryEventMonitor.swift */,
+				F6C6D33574C2C99F26F325C5 /* DownloadsBookmarkStore.swift */,
+				350A7FF3F6F6173CAEE8B3AA /* LocalMetadataStore.swift */,
+				43C78B055DBB1F7D4DEC2109 /* LoginItemService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		942915A6DB77EFD179542E53 = {
+			isa = PBXGroup;
+			children = (
+				FBC529E95F6D56446AC0EEB3 /* DayDrop */,
+				BB0D0FB7AF17782740443B61 /* DayDropTests */,
+				04E5EE324B5241C95263CA5D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		95FEE407136A0395AE9823B3 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				E12E62542054D55F0FD94AD1 /* DirectoryEventMonitorTests.swift */,
+				2C1719A85DB8E07586CBCABC /* DownloadsBookmarkStoreTests.swift */,
+				999DB47D4B664FF26C6F03BC /* LocalMetadataStoreTests.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A167587F461BBB9B1DD6A220 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				29A40F58B6AAF696797D5EE2 /* ArchiveDayTests.swift */,
+				0BAA36BA656F2761207C1C01 /* ArchivePathRouterTests.swift */,
+				6D7F5BE79DBDA4942F051D6E /* ArchiveTargetOwnershipPolicyTests.swift */,
+				86BC376406FEBEC7B62E5DBD /* CollisionNameResolverTests.swift */,
+				8CE292D61DDFAEFD2D636E07 /* DownloadCandidatePolicyTests.swift */,
+				92D97D82AE48E6D582F6AF7B /* ExistingFileDateResolverTests.swift */,
+				862B022164A5E72F870139F0 /* FileSizeStabilityTrackerTests.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		B48DE3A2C0441F51EE278076 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				0D444756A6A8B747A155784E /* DayDropCompactToggleStyle.swift */,
+				AB77B2A2A64A84DF66FD2DEF /* MenuBarView.swift */,
+				9192C6D2A4FB481C6EA6C6B5 /* OnboardingView.swift */,
+				A18000441BF66A1CC61632C6 /* RecentActivityView.swift */,
+				79D43D37C0B4C918BA15A741 /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B8326C25F231DAA35BA939FA /* App */ = {
+			isa = PBXGroup;
+			children = (
+				8EBE187B958AF3EFFFF898E0 /* DayDropApp.swift */,
+				FDDA11243B45BDB99345C28E /* DayDropController.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		BB0D0FB7AF17782740443B61 /* DayDropTests */ = {
+			isa = PBXGroup;
+			children = (
+				A167587F461BBB9B1DD6A220 /* Core */,
+				60E43A1B352FF110D9DD7CEC /* Integration */,
+				95FEE407136A0395AE9823B3 /* Services */,
+			);
+			path = DayDropTests;
+			sourceTree = "<group>";
+		};
+		EC1ABB59CEF59921DABD30BF /* Orchestration */ = {
+			isa = PBXGroup;
+			children = (
+				282B8CB471EE2B4DD5959590 /* ArchiveEngine.swift */,
+				3820F4D7702C40C9107B621C /* FileCandidateScanner.swift */,
+			);
+			path = Orchestration;
+			sourceTree = "<group>";
+		};
+		FBC529E95F6D56446AC0EEB3 /* DayDrop */ = {
+			isa = PBXGroup;
+			children = (
+				B8326C25F231DAA35BA939FA /* App */,
+				1F2F2EFD2226D58DFDD61DAA /* Core */,
+				EC1ABB59CEF59921DABD30BF /* Orchestration */,
+				15CF4878829DAEE17A9AB870 /* Resources */,
+				9112A586684BE4A7465CCB63 /* Services */,
+				B48DE3A2C0441F51EE278076 /* Views */,
+			);
+			path = DayDrop;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		485091BA91D6C35591FC1C13 /* DayDropTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 351D76767656E6D98EF1D5BC /* Build configuration list for PBXNativeTarget "DayDropTests" */;
+			buildPhases = (
+				2C48F203FB089AE6C9D6C74B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3E4B423F5CF2EDDD5D6B51C4 /* PBXTargetDependency */,
+			);
+			name = DayDropTests;
+			packageProductDependencies = (
+			);
+			productName = DayDropTests;
+			productReference = 03CC1AE9DDC1E55313ABC7B7 /* DayDropTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		6F8ED35F337C140B5AA0C589 /* DayDrop */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 34BB0532FE2E281755DC2645 /* Build configuration list for PBXNativeTarget "DayDrop" */;
+			buildPhases = (
+				229123DD550F951E07CDC837 /* Sources */,
+				8C09856095541A37FD392181 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DayDrop;
+			packageProductDependencies = (
+			);
+			productName = DayDrop;
+			productReference = 6376A464D9EDA8F940C66061 /* DayDrop.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5967DBBD1C1E0FB5A2E768D3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					485091BA91D6C35591FC1C13 = {
+						ProvisioningStyle = Automatic;
+					};
+					6F8ED35F337C140B5AA0C589 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 2A1555D653D1A5A9D3450402 /* Build configuration list for PBXProject "DayDrop" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 942915A6DB77EFD179542E53;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 04E5EE324B5241C95263CA5D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6F8ED35F337C140B5AA0C589 /* DayDrop */,
+				485091BA91D6C35591FC1C13 /* DayDropTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8C09856095541A37FD392181 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6181820ABDFCBBED344EFD59 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		229123DD550F951E07CDC837 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2AE380B070F2511458A03A78 /* ArchiveDay.swift in Sources */,
+				179A6A4F3B84E21310CBC206 /* ArchiveEngine.swift in Sources */,
+				A934E4EA7752E5DC542C5240 /* ArchivePathRouter.swift in Sources */,
+				B3CCCB0445AC5E1B71F281E4 /* BatchNotificationService.swift in Sources */,
+				97961BD641B20E065CD3CF49 /* CollisionNameResolver.swift in Sources */,
+				EE2554D2B89DC3C4F61E961F /* DayDropApp.swift in Sources */,
+				215D36E6F1E43C8695359B51 /* DayDropCompactToggleStyle.swift in Sources */,
+				C0F09A4904EBC691E58212C0 /* DayDropController.swift in Sources */,
+				34396CCFA267EDA78E9DF84E /* DirectoryEventMonitor.swift in Sources */,
+				3DE1F373474496AA5686FA78 /* DownloadCandidatePolicy.swift in Sources */,
+				7DE665848B6B95B1D67088C2 /* DownloadsBookmarkStore.swift in Sources */,
+				2CB2F0C728168B0E348AA68F /* ExistingFileDateResolver.swift in Sources */,
+				A89681319E0BFBDE40F5C177 /* FileCandidateScanner.swift in Sources */,
+				8BE7D4D01CCE23947D2D335C /* FileSizeStabilityTracker.swift in Sources */,
+				C58802E7E6532C8C931CE451 /* LocalMetadataStore.swift in Sources */,
+				ABAF70AA1D522400480FFEB0 /* LoginItemService.swift in Sources */,
+				93073EF348EA67C1737223A7 /* MenuBarView.swift in Sources */,
+				00525B0FDA3EB89BCA843445 /* OnboardingView.swift in Sources */,
+				7E13837C1331C6620E108836 /* RecentActivityView.swift in Sources */,
+				C551E8368638E6D7F4785C63 /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2C48F203FB089AE6C9D6C74B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0914228DCF619F8517B5CEA0 /* ArchiveDayTests.swift in Sources */,
+				6F6626F66174C559A6BB765B /* ArchiveEngineTests.swift in Sources */,
+				4B30D7C49FD831CBB5841837 /* ArchivePathRouterTests.swift in Sources */,
+				01967B35BA8BFA9B0496FEA0 /* ArchiveTargetOwnershipPolicyTests.swift in Sources */,
+				AB661D318FA23C8F42862818 /* CollisionNameResolverTests.swift in Sources */,
+				2DA78CCB020E93C8009FEC78 /* DirectoryEventMonitorTests.swift in Sources */,
+				3BC67300D4778F5DA7FB76E7 /* DownloadCandidatePolicyTests.swift in Sources */,
+				686EBF1F72F55DC437E090E5 /* DownloadsBookmarkStoreTests.swift in Sources */,
+				4ED851D3F3F5FE873C405AE2 /* ExistingFileDateResolverTests.swift in Sources */,
+				3746FEECF900CC21A2D18393 /* FileCandidateScannerTests.swift in Sources */,
+				F5C54FF0E1E7192CC0DAE24A /* FileSizeStabilityTrackerTests.swift in Sources */,
+				494B737F35FCC7619A58CA78 /* LocalMetadataStoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3E4B423F5CF2EDDD5D6B51C4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6F8ED35F337C140B5AA0C589 /* DayDrop */;
+			targetProxy = 1BEE521C114660C8B794B8A3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		308CB5F0D3FAB5E1B8B78E15 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.liuyuhang.DayDropTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DayDrop.app/Contents/MacOS/DayDrop";
+			};
+			name = Release;
+		};
+		4D3BFD5405CF2361B3611F8B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		660169062D4317D2C935FB90 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.liuyuhang.DayDropTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DayDrop.app/Contents/MacOS/DayDrop";
+			};
+			name = Debug;
+		};
+		6FDB2D462B70A90EB572D9B8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		874D716A5A7BC6E2B1044BAA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = DayDrop/Resources/DayDrop.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DayDrop/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.liuyuhang.DayDrop;
+				PRODUCT_NAME = DayDrop;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		E6F5269381F12520942E9DF0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = DayDrop/Resources/DayDrop.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DayDrop/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.liuyuhang.DayDrop;
+				PRODUCT_NAME = DayDrop;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2A1555D653D1A5A9D3450402 /* Build configuration list for PBXProject "DayDrop" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4D3BFD5405CF2361B3611F8B /* Debug */,
+				6FDB2D462B70A90EB572D9B8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		34BB0532FE2E281755DC2645 /* Build configuration list for PBXNativeTarget "DayDrop" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				874D716A5A7BC6E2B1044BAA /* Debug */,
+				E6F5269381F12520942E9DF0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		351D76767656E6D98EF1D5BC /* Build configuration list for PBXNativeTarget "DayDropTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				660169062D4317D2C935FB90 /* Debug */,
+				308CB5F0D3FAB5E1B8B78E15 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5967DBBD1C1E0FB5A2E768D3 /* Project object */;
+}

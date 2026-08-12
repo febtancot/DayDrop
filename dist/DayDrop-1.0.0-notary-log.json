@@ -1,0 +1,42 @@
+{
+  "logFormatVersion": 1,
+  "jobId": "b24c5365-e6be-427c-8b63-80f7d107a0e5",
+  "status": "Accepted",
+  "statusSummary": "Ready for distribution",
+  "statusCode": 0,
+  "archiveFilename": "DayDrop-1.0.0.dmg",
+  "uploadDate": "2026-08-12T03:08:55.563Z",
+  "sha256": "16e2d6816892bbecf7c04e7a3e8d875575c306fe9d5cdfcc8b7c7c46c35f664e",
+  "ticketContents": [
+    {
+      "path": "DayDrop-1.0.0.dmg/DayDrop.app",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "e9fcb4e995f6ad77dbafcfa72fe4b914bc3c3937",
+      "arch": "x86_64"
+    },
+    {
+      "path": "DayDrop-1.0.0.dmg/DayDrop.app",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "3e3b0c780db97de097c02fa40cf4b6cbaf55f264",
+      "arch": "arm64"
+    },
+    {
+      "path": "DayDrop-1.0.0.dmg/DayDrop.app/Contents/MacOS/DayDrop",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "e9fcb4e995f6ad77dbafcfa72fe4b914bc3c3937",
+      "arch": "x86_64"
+    },
+    {
+      "path": "DayDrop-1.0.0.dmg/DayDrop.app/Contents/MacOS/DayDrop",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "3e3b0c780db97de097c02fa40cf4b6cbaf55f264",
+      "arch": "arm64"
+    },
+    {
+      "path": "DayDrop-1.0.0.dmg",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "bf981109b2d08b85d34a04faa9693b33e050758c"
+    }
+  ],
+  "issues": null
+}

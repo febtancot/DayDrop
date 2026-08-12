@@ -1,0 +1,45 @@
+name: DayDrop
+options:
+  bundleIdPrefix: com.liuyuhang
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    CODE_SIGN_STYLE: Automatic
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 1.0.0
+    CLANG_ENABLE_MODULES: YES
+targets:
+  DayDrop:
+    type: application
+    platform: macOS
+    sources:
+      - path: DayDrop
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.liuyuhang.DayDrop
+        PRODUCT_NAME: DayDrop
+        INFOPLIST_FILE: DayDrop/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: DayDrop/Resources/DayDrop.entitlements
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_EMIT_LOC_STRINGS: YES
+    scheme:
+      testTargets:
+        - DayDropTests
+  DayDropTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: DayDropTests
+    dependencies:
+      - target: DayDrop
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.liuyuhang.DayDropTests
+        GENERATE_INFOPLIST_FILE: YES
