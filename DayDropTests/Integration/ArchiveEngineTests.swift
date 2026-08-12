@@ -73,6 +73,91 @@ final class ArchiveEngineTests: XCTestCase {
         XCTAssertEqual(try String(contentsOf: sourceURL), "source")
     }
 
+    func testMoveAcceptsFileInsideImmediateSubfolder() async throws {
+        let sourceFolder = temporaryRoot.appendingPathComponent("Project", isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: sourceFolder,
+            withIntermediateDirectories: true
+        )
+        let sourceURL = sourceFolder.appendingPathComponent("notes.txt")
+        try Data("notes".utf8).write(to: sourceURL)
+
+        let engine = ArchiveEngine(calendar: fixedCalendar())
+        let day = ArchiveDay(year: 2026, month: 8, day: 11)!
+        let result = await engine.moveFile(
+            at: sourceURL,
+            sourceDay: day,
+            relativeTo: day,
+            in: temporaryRoot,
+            expectedSourceIdentity: try XCTUnwrap(
+                FileSystemIdentity.itemIdentifier(at: sourceURL)
+            )
+        )
+
+        XCTAssertTrue(result.succeeded)
+        XCTAssertEqual(result.destinationURL.lastPathComponent, "notes.txt")
+        XCTAssertEqual(try String(contentsOf: result.destinationURL), "notes")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourceFolder.path))
+    }
+
+    func testMoveRejectsFileDeeperThanImmediateSubfolder() async throws {
+        let sourceFolder = temporaryRoot.appendingPathComponent(
+            "Project/Deeper",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(
+            at: sourceFolder,
+            withIntermediateDirectories: true
+        )
+        let sourceURL = sourceFolder.appendingPathComponent("keep.txt")
+        try Data("keep".utf8).write(to: sourceURL)
+
+        let engine = ArchiveEngine(calendar: fixedCalendar())
+        let day = ArchiveDay(year: 2026, month: 8, day: 11)!
+        let result = await engine.moveFile(
+            at: sourceURL,
+            sourceDay: day,
+            relativeTo: day,
+            in: temporaryRoot
+        )
+
+        XCTAssertFalse(result.succeeded)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourceURL.path))
+        XCTAssertEqual(try String(contentsOf: sourceURL), "keep")
+    }
+
+    func testMoveDoesNotRenameFileAlreadyInsideItsDestinationFolder() async throws {
+        let dayFolder = temporaryRoot.appendingPathComponent(
+            "Day 2026-08-11",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(
+            at: dayFolder,
+            withIntermediateDirectories: true
+        )
+        let sourceURL = dayFolder.appendingPathComponent("already-sorted.txt")
+        try Data("sorted".utf8).write(to: sourceURL)
+
+        let engine = ArchiveEngine(calendar: fixedCalendar())
+        let day = ArchiveDay(year: 2026, month: 8, day: 11)!
+        let result = await engine.moveFile(
+            at: sourceURL,
+            sourceDay: day,
+            relativeTo: day,
+            in: temporaryRoot,
+            expectedSourceIdentity: try XCTUnwrap(
+                FileSystemIdentity.itemIdentifier(at: sourceURL)
+            )
+        )
+
+        XCTAssertTrue(result.succeeded)
+        XCTAssertEqual(result.sourceURL, result.destinationURL)
+        XCTAssertEqual(try String(contentsOf: sourceURL), "sorted")
+        XCTAssertFalse(FileManager.default.fileExists(
+            atPath: dayFolder.appendingPathComponent("already-sorted (1).txt").path
+        ))
+    }
+
     func testMigrationRenamesLegacyDayFolderIntoPrefixedMonthHierarchy() async throws {
         let sourceFolder = temporaryRoot.appendingPathComponent("0727", isDirectory: true)
         try FileManager.default.createDirectory(at: sourceFolder, withIntermediateDirectories: true)

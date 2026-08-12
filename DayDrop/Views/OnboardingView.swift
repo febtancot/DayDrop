@@ -60,7 +60,7 @@ struct OnboardingView: View {
     private var folderAccessStep: some View {
         SetupCard(step: "1", title: "选择“下载”文件夹") {
             VStack(alignment: .leading, spacing: 12) {
-                Text("macOS 需要你明确授权。DayDrop 只会处理所选文件夹顶层的文件，不会读取文件内容。")
+                Text("macOS 需要你明确授权。DayDrop 默认只处理所选文件夹顶层的文件，不会读取文件内容；深度整理下一层文件夹需要你另行确认。")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

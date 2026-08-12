@@ -2,7 +2,7 @@
 
 ## Purpose
 
-DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads folder tidy by moving completed top-level downloads into date-based folders. The product promise is **“Downloads, day by day.”**
+DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads folder tidy by moving completed top-level downloads into date-based folders. Users can also explicitly request a one-level deep reorganization when they accept that existing folder grouping may be disrupted. The product promise is **“Downloads, day by day.”**
 
 ## Target users and outcomes
 
@@ -15,6 +15,7 @@ DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads 
 - First-run explanation, Downloads-folder authorization, login-item choice, and an explicit choice before existing files are organized.
 - Event-driven monitoring of top-level files in the selected Downloads folder.
 - Conservative download-completion checks and delayed retry when completion cannot be proven.
+- A separate deep-organization action for existing files in the Downloads root and its immediate subfolders. It never recurses deeper and cannot run until the user accepts a second warning that the prior folder structure may be disrupted.
 - Readable date routing to `Day YYYY-MM-DD/`, `Month YYYY-MM/Day YYYY-MM-DD/`,
   or `Year YYYY/Month YYYY-MM/Day YYYY-MM-DD/`.
 - Migration of DayDrop-managed day folders as they cross the 14-day and year
@@ -30,10 +31,11 @@ DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads 
 - If today's archive folder does not yet exist, the open action creates it through the normal safe archive-preparation flow, writes the full-date ownership marker, persists its managed-folder identity, refreshes the today monitor, and then opens it.
 - Frequently used login-launch and notification settings remain visible as compact controls in the main panel and are mirrored in the full Settings page. Both surfaces call the same runtime methods rather than maintaining independent UI-only state.
 - The welcome/setup page opens automatically before first-run completion and can later be reopened from **设置 → 帮助 → 重新打开欢迎页面**. Reopening it does not erase existing authorization or automatically opt into organizing existing files.
+- **立即整理现有文件** remains top-level only. **深度整理子文件夹…** is a separate destructive action; cancelling its confirmation performs no scan or move.
 
 ## Out of scope
 
-File-type or website rules, multiple watched folders, custom date formats, AI inspection, renaming, duplicate detection, cloud sync, browser extensions, automatic deletion, unattended automatic update installation, and undo are not part of the MVP.
+File-type or website rules, multiple watched folders, recursive organization beyond one immediate subfolder level, custom date formats, AI inspection, renaming, duplicate detection, cloud sync, browser extensions, automatic deletion, unattended automatic update installation, and undo are not part of the MVP.
 
 ## Success criteria
 

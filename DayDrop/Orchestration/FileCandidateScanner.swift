@@ -7,6 +7,7 @@ struct TopLevelFileSnapshot: Equatable, Sendable {
     let fileName: String
     let isHidden: Bool
     let isDirectory: Bool
+    let isPackage: Bool
     let isRegularFile: Bool
     let isSymbolicLink: Bool
     let size: UInt64?
@@ -34,9 +35,62 @@ struct FileCandidateScanner {
     }
 
     func topLevelSnapshots(in rootURL: URL) throws -> [TopLevelFileSnapshot] {
+        try snapshotsDirectlyInside(rootURL)
+    }
+
+    /// Returns the root entries plus files and directories directly inside
+    /// eligible first-level folders. It deliberately never walks deeper.
+    func snapshotsIncludingImmediateSubfolders(
+        in rootURL: URL,
+        shouldDescendInto: (TopLevelFileSnapshot) -> Bool = { _ in true }
+    ) throws -> [TopLevelFileSnapshot] {
+        let topLevel = try snapshotsDirectlyInside(rootURL)
+        let nested = topLevel
+            .filter { snapshot in
+                snapshot.isDirectory
+                    && !snapshot.isSymbolicLink
+                    && !snapshot.isPackage
+                    && !snapshot.isHidden
+                    && !snapshot.fileName.hasPrefix(".")
+                    && shouldDescendInto(snapshot)
+            }
+            .flatMap { folder in
+                (try? snapshotsDirectlyInside(folder.url)) ?? []
+            }
+
+        return topLevel + nested
+    }
+
+    func isSupportedSourceURL(
+        _ url: URL,
+        in rootURL: URL,
+        maximumDepth: Int
+    ) -> Bool {
+        guard maximumDepth > 0 else { return false }
+        let root = rootURL.standardizedFileURL
+        let candidate = url.standardizedFileURL
+        let rootComponents = root.pathComponents
+        let candidateComponents = candidate.pathComponents
+        guard candidateComponents.starts(with: rootComponents) else { return false }
+
+        let relativeDepth = candidateComponents.count - rootComponents.count
+        guard (1...maximumDepth).contains(relativeDepth) else { return false }
+
+        var parent = candidate.deletingLastPathComponent()
+        while parent != root {
+            guard FileSystemIdentity.directoryIdentifier(at: parent) != nil else {
+                return false
+            }
+            parent.deleteLastPathComponent()
+        }
+        return true
+    }
+
+    private func snapshotsDirectlyInside(_ directoryURL: URL) throws -> [TopLevelFileSnapshot] {
         let keys: Set<URLResourceKey> = [
             .isHiddenKey,
             .isDirectoryKey,
+            .isPackageKey,
             .isRegularFileKey,
             .isSymbolicLinkKey,
             .fileSizeKey,
@@ -46,7 +100,7 @@ struct FileCandidateScanner {
         ]
 
         return try fileManager.contentsOfDirectory(
-            at: rootURL,
+            at: directoryURL,
             includingPropertiesForKeys: Array(keys),
             options: [.skipsSubdirectoryDescendants, .skipsPackageDescendants]
         ).compactMap { snapshot(at: $0, prefetchedKeys: keys) }
@@ -58,6 +112,7 @@ struct FileCandidateScanner {
             prefetchedKeys: [
                 .isHiddenKey,
                 .isDirectoryKey,
+                .isPackageKey,
                 .isRegularFileKey,
                 .isSymbolicLinkKey,
                 .fileSizeKey,
@@ -114,6 +169,7 @@ struct FileCandidateScanner {
             fileName: url.lastPathComponent,
             isHidden: values.isHidden ?? url.lastPathComponent.hasPrefix("."),
             isDirectory: values.isDirectory ?? false,
+            isPackage: values.isPackage ?? false,
             isRegularFile: values.isRegularFile ?? false,
             isSymbolicLink: values.isSymbolicLink ?? false,
             size: fileSize,

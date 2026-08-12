@@ -4,6 +4,8 @@
 
 The native MVP uses a SwiftUI `MenuBarExtra` with window style, an AppKit folder picker, Foundation file operations, file-descriptor-backed Dispatch sources, ServiceManagement login-item APIs, and UserNotifications. Pure date/path, eligibility, stability, and collision logic is independently tested.
 
+Automatic discovery and the ordinary manual action remain root-only. The opt-in deep action performs one bounded expansion into immediate, non-hidden, non-package, non-symbolic-link subfolders; it skips DayDrop-owned archive roots. Pending nested candidates retain their exact file-system identity and are revalidated at a maximum depth of two before the archive engine reacquires its advisory lock and moves them.
+
 ## Components
 
 - **App/UI:** menu-bar popover, standard-titlebar onboarding window, clickable today module, activity history, full Settings destination, current-version display, manual update action, and a shared compact toggle style.
@@ -68,6 +70,8 @@ This command generates and builds the arm64 Debug app, terminates DayDrop, moves
 - The current universal DMG is timestamped with `Developer ID Application: Xueliu Shen (8NF4K823FV)`. App Store Connect `.p8` authentication was used for notarization; Apple returned `Accepted`, the ticket is stapled, and Gatekeeper reports `Notarized Developer ID` for both the DMG and contained app.
 - The current `/Applications/DayDrop.app` used during development is an arm64 ad-hoc-signed Debug build installed by `npm run mac`; its successful launch does not prove Developer ID, Gatekeeper, notarization, Intel, or minimum-macOS release behavior.
 - Path identities are revalidated immediately before and throughout recursive operations. A fully adversarial same-path replacement race would require a future file-descriptor-relative `openat`/`renameat` implementation; this is tracked separately from normal Downloads-folder operation.
-- `npm run release:mac` performs credential preflight, tests, static analysis, universal build, entitlement/signature validation, immutable submission tracking, notarization recovery, stapling, Gatekeeper checks, mounted-content verification, and final SHA-256 generation.
-- The release workflow also re-signs Sparkle's nested helpers with the same Developer ID identity and generates `Product_Site/updates/appcast.xml` with EdDSA signatures. The private update key never enters the repository or website.
+- `npm run version:set -- <version> <build>` updates `project.yml`, both npm manifest/lock declarations, and the generated Xcode project as one rollback-protected operation; `version:check` verifies them before release.
+- `npm run release:mac -- --version <version> --build <build>` requires an explicit release intent and performs version preflight, credential preflight, tests, static analysis, universal build, app/DMG version verification, entitlement/signature validation, immutable submission tracking, notarization recovery, stapling, Gatekeeper checks, mounted-content verification, and final SHA-256 generation.
+- The release workflow also re-signs Sparkle's nested helpers with the same Developer ID identity, generates `Product_Site/updates/appcast.xml` with EdDSA signatures, stages the DMG/checksum, updates every homepage release reference from the project version, and runs a cross-artifact consistency check. The private update key never enters the repository or website.
+- Deployment remains an explicit second step: `npm run publish:web` first revalidates local release content, deploys `Product_Site` to the `daydrop` Cloudflare Pages project, and then downloads and verifies the homepage, appcast, and complete DMG from both the immutable deployment URL and production custom domain.
 - [Unknown] Mac App Store entitlements and distribution-channel automation await distribution decisions.

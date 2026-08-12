@@ -206,7 +206,7 @@ public actor LocalMetadataStore {
         )
     }
 
-    public static let defaultMaximumOperationRecords = 50
+    public static let defaultMaximumOperationRecords = 100
 
     private let storageURL: URL
     private let maximumOperationRecords: Int

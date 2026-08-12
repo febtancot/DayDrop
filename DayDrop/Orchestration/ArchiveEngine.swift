@@ -370,6 +370,17 @@ actor ArchiveEngine {
         let route = router.route(for: sourceDay, relativeTo: today)
         let root = rootURL.standardizedFileURL
 
+        guard isSafeFileSource(sourceURL, inside: root, maximumDepth: 2) else {
+            return ArchiveFileMoveResult(
+                sourceURL: sourceURL,
+                destinationURL: root,
+                sourceDay: sourceDay,
+                relativeFolderPath: route.relativePath,
+                succeeded: false,
+                errorMessage: "来源文件不在“下载”目录顶层或下一层安全路径中。"
+            )
+        }
+
         guard let targetFolder = safeDescendant(of: root, relativePath: route.relativePath) else {
             return ArchiveFileMoveResult(
                 sourceURL: sourceURL,
@@ -385,9 +396,13 @@ actor ArchiveEngine {
             sourceURL.lastPathComponent,
             isDirectory: false
         )
-        let destinationURL = CollisionNameResolver.availableURL(for: desiredURL) {
-            operations.fileExists($0)
-        }
+        let sourceAlreadyAtDestination = sourceURL.standardizedFileURL
+            == desiredURL.standardizedFileURL
+        let destinationURL = sourceAlreadyAtDestination
+            ? sourceURL.standardizedFileURL
+            : CollisionNameResolver.availableURL(for: desiredURL) {
+                operations.fileExists($0)
+            }
 
         do {
             try operations.createDirectory(targetFolder)
@@ -412,6 +427,16 @@ actor ArchiveEngine {
             if let expectedSourceIdentity,
                operations.itemIdentity(sourceURL) != expectedSourceIdentity {
                 throw ArchiveEngineError.sourceIdentityChanged(sourceURL)
+            }
+            if sourceAlreadyAtDestination {
+                return ArchiveFileMoveResult(
+                    sourceURL: sourceURL,
+                    destinationURL: destinationURL,
+                    sourceDay: sourceDay,
+                    relativeFolderPath: route.relativePath,
+                    succeeded: true,
+                    errorMessage: nil
+                )
             }
             try withExtendedLifetime(heldLock) {
                 try operations.moveItem(sourceURL, destinationURL)
@@ -845,6 +870,29 @@ actor ArchiveEngine {
         }
 
         return candidate
+    }
+
+    private func isSafeFileSource(
+        _ sourceURL: URL,
+        inside rootURL: URL,
+        maximumDepth: Int
+    ) -> Bool {
+        let root = rootURL.standardizedFileURL
+        let source = sourceURL.standardizedFileURL
+        let rootComponents = root.pathComponents
+        let sourceComponents = source.pathComponents
+        guard sourceComponents.starts(with: rootComponents) else { return false }
+
+        let relativeComponents = Array(sourceComponents.dropFirst(rootComponents.count))
+        guard (1...maximumDepth).contains(relativeComponents.count),
+              !containsSymbolicLink(from: root, through: relativeComponents)
+        else {
+            return false
+        }
+
+        let resolvedRoot = root.resolvingSymlinksInPath().standardizedFileURL
+        let resolvedSource = source.resolvingSymlinksInPath().standardizedFileURL
+        return isStrictDescendant(resolvedSource, of: resolvedRoot)
     }
 
     private func containsSymbolicLink(from rootURL: URL, through components: [String]) -> Bool {

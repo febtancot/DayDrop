@@ -10,11 +10,16 @@ project_dir=${script_dir:h}
 cd "$project_dir"
 
 project_version=$(awk -F ': *' '/MARKETING_VERSION:/ { gsub(/"/, "", $2); print $2; exit }' project.yml)
+project_build=$(awk -F ': *' '/CURRENT_PROJECT_VERSION:/ { gsub(/"/, "", $2); print $2; exit }' project.yml)
 dmg=${1:-"$project_dir/dist/DayDrop-$project_version.dmg"}
 downloads_dir="$project_dir/Product_Site/downloads"
 updates_dir="$project_dir/Product_Site/updates"
 appcast="$updates_dir/appcast.xml"
 sparkle_account=com.liuyuhang.DayDrop
+
+"$project_dir/scripts/verify-version.sh" \
+    --version "$project_version" \
+    --build "$project_build"
 
 [[ -f "$dmg" ]] || { print -u2 "错误：找不到更新包：$dmg"; exit 1; }
 
@@ -124,3 +129,5 @@ grep -F "${dmg:t}" "$appcast" >/dev/null || {
 
 print "更新 Feed 已生成：$appcast"
 print "更新包已暂存：$downloads_dir/${dmg:t}"
+
+"$project_dir/scripts/prepare-web-release.sh"

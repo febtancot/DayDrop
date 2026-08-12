@@ -7,10 +7,10 @@
 # every notarytool command. This script never falls back to an Apple ID password.
 #
 # Usage:
-#   npm run release:mac
+#   npm run release:mac -- --version 1.0.3 --build 4
 #
 # Resume a successfully uploaded submission without rebuilding or re-uploading:
-#   SUBMISSION_ID=<UUID> npm run release:mac
+#   SUBMISSION_ID=<UUID> npm run release:mac -- --version 1.0.3 --build 4
 #
 # Supported overrides:
 #   NOTARY_KEY=/absolute/path/AuthKey_XXXXXXXXXX.p8
@@ -25,22 +25,52 @@ script_dir=${0:A:h}
 project_dir=${script_dir:h}
 cd "$project_dir"
 
-project_file="$project_dir/project.yml"
-package_file="$project_dir/package.json"
 entitlements_file="$project_dir/DayDrop/Resources/DayDrop.entitlements"
 dist_dir="$project_dir/dist"
 test_derived_data="$project_dir/build/ReleaseTestsDerivedData"
 analysis_derived_data="$project_dir/build/ReleaseAnalyzeDerivedData"
 release_derived_data="$project_dir/build/ReleaseDerivedData"
 
-version=$(awk -F ': *' '/MARKETING_VERSION:/ { gsub(/"/, "", $2); print $2; exit }' "$project_file")
-package_version=$(jq -r '.version // empty' "$package_file")
+version=""
+build_number=""
 
-[[ -n "$version" ]] || { print -u2 "错误：无法从 project.yml 读取 MARKETING_VERSION。"; exit 1; }
-[[ "$package_version" == "$version" ]] || {
-    print -u2 "错误：package.json 版本（$package_version）与 project.yml（$version）不一致。"
-    exit 1
+release_usage() {
+    print "用法：npm run release:mac -- --version <x.y.z> --build <positive-integer>"
 }
+
+while (( $# > 0 )); do
+    case "$1" in
+        --version)
+            (( $# >= 2 )) || { print -u2 "错误：--version 缺少值。"; release_usage >&2; exit 2; }
+            version=$2
+            shift 2
+            ;;
+        --build)
+            (( $# >= 2 )) || { print -u2 "错误：--build 缺少值。"; release_usage >&2; exit 2; }
+            build_number=$2
+            shift 2
+            ;;
+        -h|--help)
+            release_usage
+            exit 0
+            ;;
+        *)
+            print -u2 "错误：未知参数 $1。"
+            release_usage >&2
+            exit 2
+            ;;
+    esac
+done
+
+[[ -n "$version" && -n "$build_number" ]] || {
+    print -u2 "错误：发布时必须明确提供 --version 与 --build。"
+    release_usage >&2
+    exit 2
+}
+
+"$project_dir/scripts/verify-version.sh" \
+    --version "$version" \
+    --build "$build_number"
 
 dmg="$dist_dir/DayDrop-$version.dmg"
 app="$release_derived_data/Build/Products/Release/DayDrop.app"
@@ -66,6 +96,25 @@ for command_name in $required_commands; do
         exit 1
     }
 done
+
+submission_id=${SUBMISSION_ID:-}
+
+if [[ -z "$submission_id" ]]; then
+    published_appcast="$project_dir/Product_Site/updates/appcast.xml"
+    if [[ -f "$published_appcast" ]]; then
+        latest_published_build=$(xmllint --xpath \
+            'string((//*[local-name()="item"])[1]/*[local-name()="version"])' \
+            "$published_appcast")
+        grep -Eq '^[1-9][0-9]*$' <<< "$latest_published_build" || {
+            print -u2 "错误：现有 Appcast 的最新构建号无效：$latest_published_build"
+            exit 1
+        }
+        (( build_number > latest_published_build )) || {
+            print -u2 "错误：新发布构建号 $build_number 必须大于 Appcast 最新构建号 $latest_published_build。"
+            exit 1
+        }
+    fi
+fi
 
 [[ -f "$notary_key" ]] || {
     print -u2 "错误：找不到 App Store Connect API 私钥：$notary_key"
@@ -120,8 +169,6 @@ cleanup() {
     fi
 }
 trap cleanup EXIT INT TERM
-
-submission_id=${SUBMISSION_ID:-}
 
 if [[ -z "$submission_id" ]]; then
     print "正在生成 Xcode 工程…"
@@ -299,6 +346,11 @@ if [[ -z "$submission_id" ]]; then
         print -u2 "错误：构建版本 $built_version 与项目版本 $version 不一致。"
         exit 1
     }
+    built_build_number=$(plutil -extract CFBundleVersion raw -o - "$app/Contents/Info.plist")
+    [[ "$built_build_number" == "$build_number" ]] || {
+        print -u2 "错误：构建号 $built_build_number 与预期构建号 $build_number 不一致。"
+        exit 1
+    }
     built_bundle_id=$(plutil -extract CFBundleIdentifier raw -o - "$app/Contents/Info.plist")
     [[ "$built_bundle_id" == "com.liuyuhang.DayDrop" ]] || {
         print -u2 "错误：Bundle ID 不符合预期：$built_bundle_id"
@@ -383,6 +435,23 @@ else
         print -u2 "错误：SUBMISSION_ID 格式无效。"
         exit 1
     }
+    mount_dir=$(mktemp -d /tmp/DayDrop-release-mount.XXXXXX)
+    hdiutil attach "$dmg" -readonly -nobrowse -mountpoint "$mount_dir" >/dev/null
+    [[ -d "$mount_dir/DayDrop.app" ]] || {
+        print -u2 "错误：续跑 DMG 内缺少 DayDrop.app。"
+        exit 1
+    }
+    resumed_version=$(plutil -extract CFBundleShortVersionString raw -o - \
+        "$mount_dir/DayDrop.app/Contents/Info.plist")
+    resumed_build=$(plutil -extract CFBundleVersion raw -o - \
+        "$mount_dir/DayDrop.app/Contents/Info.plist")
+    [[ "$resumed_version" == "$version" && "$resumed_build" == "$build_number" ]] || {
+        print -u2 "错误：续跑 DMG 是 $resumed_version（构建 $resumed_build），不是 $version（构建 $build_number）。"
+        exit 1
+    }
+    hdiutil detach "$mount_dir" >/dev/null
+    rmdir "$mount_dir"
+    mount_dir=""
     print "正在续跑已有公证任务，不重新构建或上传。"
 fi
 
@@ -407,7 +476,7 @@ for attempt in 1 2 3 4 5; do
     fi
     if [[ $attempt == 5 ]]; then
         print -u2 "错误：公证等待连续中断。稍后可执行："
-        print -u2 "SUBMISSION_ID=$submission_id npm run release:mac"
+        print -u2 "SUBMISSION_ID=$submission_id npm run release:mac -- --version $version --build $build_number"
         exit 1
     fi
     rm -f "$wait_log"
@@ -444,6 +513,14 @@ hdiutil attach "$dmg" -readonly -nobrowse -mountpoint "$mount_dir" >/dev/null
 [[ -d "$mount_dir/DayDrop.app" ]] || { print -u2 "错误：DMG 内缺少 DayDrop.app。"; exit 1; }
 [[ "$(readlink "$mount_dir/Applications")" == "/Applications" ]] || {
     print -u2 "错误：DMG 内缺少有效的 Applications 快捷方式。"
+    exit 1
+}
+mounted_version=$(plutil -extract CFBundleShortVersionString raw -o - \
+    "$mount_dir/DayDrop.app/Contents/Info.plist")
+mounted_build=$(plutil -extract CFBundleVersion raw -o - \
+    "$mount_dir/DayDrop.app/Contents/Info.plist")
+[[ "$mounted_version" == "$version" && "$mounted_build" == "$build_number" ]] || {
+    print -u2 "错误：DMG 内应用是 $mounted_version（构建 $mounted_build），不是 $version（构建 $build_number）。"
     exit 1
 }
 codesign --verify --deep --strict --verbose=2 "$mount_dir/DayDrop.app"

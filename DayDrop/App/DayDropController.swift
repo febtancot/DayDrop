@@ -8,6 +8,18 @@ enum DayDropRuntime {
     }
 }
 
+enum ExistingFileOrganizationScope: Equatable, Sendable {
+    case topLevel
+    case includingImmediateSubfolders
+
+    var maximumSourceDepth: Int {
+        switch self {
+        case .topLevel: 1
+        case .includingImmediateSubfolders: 2
+        }
+    }
+}
+
 struct TodayFileItem: Identifiable, Equatable, Sendable {
     let id: String
     let name: String
@@ -86,6 +98,7 @@ final class DayDropController: ObservableObject {
         var snapshot: TopLevelFileSnapshot
         var stability = FileSizeStabilityTracker()
         var origin: CandidateOrigin
+        var organizationScope: ExistingFileOrganizationScope = .topLevel
         var failureCount = 0
         var nextMoveAttempt = Date.distantPast
         var nextStabilityObservation = Date.distantPast
@@ -93,6 +106,7 @@ final class DayDropController: ObservableObject {
 
     var onOnboardingCompleted: (() -> Void)?
     var onShowOnboarding: (() -> Void)?
+    var onRequestDeepOrganizationConfirmation: (() -> Void)?
 
     var onboardingCompleted: Bool {
         defaults.bool(forKey: DefaultsKey.onboardingCompleted)
@@ -240,7 +254,7 @@ final class DayDropController: ObservableObject {
     func chooseDownloadsFolder() {
         let panel = NSOpenPanel()
         panel.title = "授权 DayDrop 访问“下载”文件夹"
-        panel.message = "请选择当前用户的“下载”文件夹。DayDrop 只整理其中的顶层文件。"
+        panel.message = "请选择当前用户的“下载”文件夹。DayDrop 默认只整理顶层文件；深度整理仅在你再次确认后处理下一层文件夹。"
         panel.prompt = "授权"
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
@@ -281,7 +295,9 @@ final class DayDropController: ObservableObject {
         }
     }
 
-    func organizeExistingFiles() {
+    func organizeExistingFiles(
+        scope: ExistingFileOrganizationScope = .topLevel
+    ) {
         guard metadataStore != nil else {
             statusMessage = "本地记录存储不可用，未移动任何文件。"
             return
@@ -291,35 +307,89 @@ final class DayDropController: ObservableObject {
             return
         }
 
-        do {
-            let snapshots = try scanner.topLevelSnapshots(in: downloadsURL)
-            var queued = 0
+        guard let metadataStore else { return }
 
-            for snapshot in snapshots where scanner.isEligible(snapshot) {
-                if pendingCandidates[snapshot.identity] == nil {
-                    pendingCandidates[snapshot.identity] = PendingCandidate(
-                        snapshot: snapshot,
-                        origin: .manualExistingFile
-                    )
-                    queued += 1
+        Task {
+            do {
+                let managedTopLevelIdentities: Set<String> = Set(
+                    await metadataStore.loadManagedFolders().compactMap { folder in
+                        guard let topLevelName = folder.relativePath.split(separator: "/").first else {
+                            return nil
+                        }
+                        let folderURL = downloadsURL.appendingPathComponent(
+                            String(topLevelName),
+                            isDirectory: true
+                        )
+                        return FileSystemIdentity.directoryIdentifier(at: folderURL)
+                    }
+                )
+
+                let snapshots: [TopLevelFileSnapshot]
+                switch scope {
+                case .topLevel:
+                    snapshots = try scanner.topLevelSnapshots(in: downloadsURL)
+                case .includingImmediateSubfolders:
+                    snapshots = try scanner.snapshotsIncludingImmediateSubfolders(
+                        in: downloadsURL
+                    ) { folder in
+                        !managedTopLevelIdentities.contains(folder.identity)
+                            && DayDropDirectoryOwnershipMarker.managedDateIdentifier(
+                                at: folder.url
+                            ) == nil
+                            && !DayDropDirectoryOwnershipMarker.isManagedContainer(folder.url)
+                    }
                 }
-            }
 
-            if queued == 0 {
-                statusMessage = "没有需要整理的顶层文件。"
-                refreshTodayFilesNow()
-                return
-            }
+                var queued = 0
 
-            statusMessage = "正在确认 \(queued) 个文件是否已下载完成…"
-            Task {
+                for snapshot in snapshots where scanner.isEligible(snapshot) {
+                    guard scanner.isSupportedSourceURL(
+                        snapshot.url,
+                        in: downloadsURL,
+                        maximumDepth: scope.maximumSourceDepth
+                    ) else {
+                        continue
+                    }
+                    if pendingCandidates[snapshot.identity] == nil {
+                        pendingCandidates[snapshot.identity] = PendingCandidate(
+                            snapshot: snapshot,
+                            origin: .manualExistingFile,
+                            organizationScope: scope
+                        )
+                        queued += 1
+                    }
+                }
+
+                if queued == 0 {
+                    statusMessage = scope == .topLevel
+                        ? "没有需要整理的顶层文件。"
+                        : "顶层和下一层文件夹中没有需要整理的文件。"
+                    refreshTodayFilesNow()
+                    return
+                }
+
+                statusMessage = scope == .topLevel
+                    ? "正在确认 \(queued) 个文件是否已下载完成…"
+                    : "正在确认 \(queued) 个文件（含下一层文件夹）是否可安全整理…"
                 await scanAndProcessCandidates(discoverAutomaticFiles: !isPaused)
+            } catch {
+                revokeFolderAccess(
+                    message: "无法读取“下载”文件夹，请重新授权：\(error.localizedDescription)"
+                )
             }
-        } catch {
-            revokeFolderAccess(
-                message: "无法读取“下载”文件夹，请重新授权：\(error.localizedDescription)"
-            )
         }
+    }
+
+    func requestDeepOrganizationConfirmation() {
+        guard hasFolderAccess else {
+            statusMessage = "请先授权“下载”文件夹。"
+            return
+        }
+        guard let onRequestDeepOrganizationConfirmation else {
+            statusMessage = "无法显示深度整理确认窗口，请重新启动 DayDrop。"
+            return
+        }
+        onRequestDeepOrganizationConfirmation()
     }
 
     func openDownloadsFolder() {
@@ -757,10 +827,26 @@ final class DayDropController: ObservableObject {
             return
         }
 
-        let snapshotsByIdentity = Dictionary(
+        var snapshotsByIdentity = Dictionary(
             snapshots.map { ($0.identity, $0) },
             uniquingKeysWith: { _, latest in latest }
         )
+
+        for (identity, candidate) in pendingCandidates
+        where candidate.organizationScope.maximumSourceDepth > 1
+            && snapshotsByIdentity[identity] == nil {
+            guard let snapshot = scanner.snapshot(at: candidate.snapshot.url),
+                  snapshot.identity == identity,
+                  scanner.isSupportedSourceURL(
+                    snapshot.url,
+                    in: downloadsURL,
+                    maximumDepth: candidate.organizationScope.maximumSourceDepth
+                  )
+            else {
+                continue
+            }
+            snapshotsByIdentity[identity] = snapshot
+        }
 
         for identity in pendingCandidates.keys where snapshotsByIdentity[identity] == nil {
             pendingCandidates.removeValue(forKey: identity)

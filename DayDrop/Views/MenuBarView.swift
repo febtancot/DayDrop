@@ -7,9 +7,8 @@ import SwiftUI
 /// away from the actual monitor, login item, or notification configuration.
 struct MenuBarView: View {
     @ObservedObject var controller: DayDropController
-    @ObservedObject var updater: DayDropUpdater
 
-    private let panelWidth: CGFloat = 340
+    private let panelWidth: CGFloat = 380
 
     private var sortedTodayFiles: [TodayFileItem] {
         controller.todayFiles.sorted { $0.completedAt > $1.completedAt }
@@ -22,9 +21,7 @@ struct MenuBarView: View {
             accessAndStatus
             todaySection
             Divider()
-            actions
-            Divider()
-            settings
+            recentActivityAction
             Divider()
             footer
         }
@@ -58,15 +55,26 @@ struct MenuBarView: View {
 
             Spacer(minLength: 8)
 
-            Button(controller.isPaused ? "开启" : "暂停") {
-                controller.togglePaused()
+            HStack(spacing: 6) {
+                Button {
+                    controller.showSettings()
+                } label: {
+                    Label("设置", systemImage: "gearshape")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .accessibilityHint("打开整理、文件夹、自动化与更新设置")
+
+                Button(controller.isPaused ? "开启" : "暂停") {
+                    controller.togglePaused()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .accessibilityLabel(controller.isPaused ? "开启自动整理" : "暂停自动整理")
+                .accessibilityHint(controller.isPaused
+                    ? "恢复监控并整理新的已完成下载"
+                    : "立即停止处理新的下载文件")
             }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
-            .accessibilityLabel(controller.isPaused ? "开启自动整理" : "暂停自动整理")
-            .accessibilityHint(controller.isPaused
-                ? "恢复监控并整理新的已完成下载"
-                : "立即停止处理新的下载文件")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 13)
@@ -155,7 +163,7 @@ struct MenuBarView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-                .frame(maxWidth: .infinity, minHeight: 94)
+                .frame(maxWidth: .infinity, minHeight: 200)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     controller.openTodayFolder()
@@ -177,7 +185,7 @@ struct MenuBarView: View {
                         }
                     }
                 }
-                .frame(minHeight: 64, maxHeight: 220)
+                .frame(height: 240)
                 .background(Color.secondary.opacity(0.045), in: RoundedRectangle(cornerRadius: 8))
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -193,81 +201,19 @@ struct MenuBarView: View {
         .help("打开今日文件夹")
     }
 
-    private var actions: some View {
-        VStack(spacing: 2) {
-            MenuActionRow(
-                title: "立即整理现有文件",
-                systemImage: "wand.and.stars",
-                isEnabled: controller.hasFolderAccess,
-                accessibilityHint: "按照文件创建日期整理下载文件夹顶层的现有文件"
-            ) {
-                controller.organizeExistingFiles()
-            }
-
-            MenuActionRow(
-                title: "打开“下载”文件夹",
-                systemImage: "folder",
-                isEnabled: controller.hasFolderAccess,
-                accessibilityHint: "在访达中打开当前授权的下载文件夹"
-            ) {
-                controller.openDownloadsFolder()
-            }
-
+    private var recentActivityAction: some View {
+        VStack(spacing: 0) {
             MenuActionRow(
                 title: "最近整理记录",
                 systemImage: "clock.arrow.circlepath",
-                badge: controller.recentOperations.isEmpty ? nil : "\(min(controller.recentOperations.count, 50))",
-                accessibilityHint: "查看最近最多五十条整理结果"
+                badge: controller.recentOperations.isEmpty ? nil : "\(min(controller.recentOperations.count, LocalMetadataStore.defaultMaximumOperationRecords))",
+                accessibilityHint: "查看最近最多一百条整理结果"
             ) {
                 controller.showRecentActivity()
             }
-
-            MenuActionRow(
-                title: updater.availableVersion.map { "安装更新 v\($0)…" } ?? "检查更新…",
-                systemImage: "arrow.triangle.2.circlepath",
-                isEnabled: updater.canCheckForUpdates,
-                accessibilityHint: "在线检查是否有可用的 DayDrop 新版本"
-            ) {
-                updater.checkForUpdates()
-            }
-
-            MenuActionRow(
-                title: "设置",
-                systemImage: "gearshape",
-                accessibilityHint: "进入 DayDrop 设置"
-            ) {
-                controller.showSettings()
-            }
         }
         .padding(.horizontal, 8)
-        .padding(.vertical, 7)
-    }
-
-    private var settings: some View {
-        VStack(spacing: 4) {
-            Toggle(isOn: Binding(
-                get: { controller.launchAtLogin },
-                set: { controller.setLaunchAtLogin($0) }
-            )) {
-                Label("登录时自动启动", systemImage: "power")
-            }
-            .toggleStyle(DayDropCompactToggleStyle())
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityHint("控制登录 macOS 后是否自动运行 DayDrop")
-
-            Toggle(isOn: Binding(
-                get: { controller.notificationsEnabled },
-                set: { controller.setNotificationsEnabled($0) }
-            )) {
-                Label("整理完成通知", systemImage: "bell")
-            }
-            .toggleStyle(DayDropCompactToggleStyle())
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityHint("控制每批文件整理完成后的系统通知")
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
     }
 
     private var footer: some View {
@@ -286,12 +232,22 @@ struct MenuBarView: View {
                 .foregroundStyle(.tertiary)
                 .accessibilityLabel(DayDropVersionInfo.current.detailedDisplay)
 
-            Button("退出 DayDrop") {
+            Button {
                 controller.quit()
+            } label: {
+                Label("退出", systemImage: "power")
+                    .font(.caption.weight(.semibold))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .foregroundStyle(Color.red)
+                    .background(Color.red.opacity(0.09), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .stroke(Color.red.opacity(0.28), lineWidth: 1)
+                    }
             }
             .buttonStyle(.plain)
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            .accessibilityLabel("退出 DayDrop")
             .accessibilityHint("停止监控并退出应用")
         }
         .padding(.horizontal, 16)

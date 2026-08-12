@@ -80,12 +80,12 @@ final class LocalMetadataStoreTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: storageURL), before)
     }
 
-    func testOperationRecordsPreserveSuccessAndFailureAndKeepNewestFifty() async throws {
+    func testOperationRecordsPreserveSuccessAndFailureAndKeepNewestOneHundred() async throws {
         let storageURL = try makeStorageURL()
         let store = try LocalMetadataStore(storageURL: storageURL)
 
         try await withThrowingTaskGroup(of: Void.self) { group in
-            for index in 0..<80 {
+            for index in 0..<130 {
                 group.addTask {
                     let succeeded = index.isMultiple(of: 2)
                     let record = OperationRecord(
@@ -103,8 +103,8 @@ final class LocalMetadataStoreTests: XCTestCase {
         }
 
         let records = await store.loadOperationRecords()
-        XCTAssertEqual(records.count, 50)
-        XCTAssertEqual(records.first?.performedAt, Date(timeIntervalSince1970: 79))
+        XCTAssertEqual(records.count, LocalMetadataStore.defaultMaximumOperationRecords)
+        XCTAssertEqual(records.first?.performedAt, Date(timeIntervalSince1970: 129))
         XCTAssertEqual(records.last?.performedAt, Date(timeIntervalSince1970: 30))
         XCTAssertTrue(records.contains { !$0.succeeded && $0.errorMessage == "move failed" })
         XCTAssertTrue(records.contains { $0.succeeded && $0.errorMessage == nil })

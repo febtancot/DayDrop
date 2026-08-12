@@ -36,6 +36,95 @@ final class FileCandidateScannerTests: XCTestCase {
         XCTAssertFalse(scanner.isEligible(directory))
     }
 
+    func testImmediateSubfolderScanIncludesOneLevelButNeverRecursesDeeper() throws {
+        let topLevelFile = temporaryRoot.appendingPathComponent("top.pdf")
+        try Data("top".utf8).write(to: topLevelFile)
+
+        let includedFolder = temporaryRoot.appendingPathComponent("Project", isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: includedFolder,
+            withIntermediateDirectories: true
+        )
+        try Data("nested".utf8).write(
+            to: includedFolder.appendingPathComponent("nested.txt")
+        )
+        let deeperFolder = includedFolder.appendingPathComponent("Deeper", isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: deeperFolder,
+            withIntermediateDirectories: true
+        )
+        try Data("too deep".utf8).write(
+            to: deeperFolder.appendingPathComponent("ignored.txt")
+        )
+
+        let excludedFolder = temporaryRoot.appendingPathComponent("Managed", isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: excludedFolder,
+            withIntermediateDirectories: true
+        )
+        try Data("managed".utf8).write(
+            to: excludedFolder.appendingPathComponent("managed.txt")
+        )
+
+        let scanner = FileCandidateScanner()
+        let snapshots = try scanner.snapshotsIncludingImmediateSubfolders(
+            in: temporaryRoot,
+            shouldDescendInto: { $0.fileName != "Managed" }
+        )
+        let eligibleNames = Set(
+            snapshots.filter(scanner.isEligible).map(\.fileName)
+        )
+
+        XCTAssertEqual(eligibleNames, ["top.pdf", "nested.txt"])
+        XCTAssertFalse(snapshots.contains { $0.fileName == "ignored.txt" })
+        XCTAssertFalse(snapshots.contains { $0.fileName == "managed.txt" })
+    }
+
+    func testSupportedSourceDepthRejectsDeeperAndSymlinkedParents() throws {
+        let directFolder = temporaryRoot.appendingPathComponent("Direct", isDirectory: true)
+        let deeperFolder = directFolder.appendingPathComponent("Deeper", isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: deeperFolder,
+            withIntermediateDirectories: true
+        )
+        let nestedFile = directFolder.appendingPathComponent("nested.txt")
+        let deeperFile = deeperFolder.appendingPathComponent("ignored.txt")
+        try Data("nested".utf8).write(to: nestedFile)
+        try Data("deeper".utf8).write(to: deeperFile)
+
+        let outsideFolder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("DayDrop-ScannerOutside-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: outsideFolder,
+            withIntermediateDirectories: true
+        )
+        defer { try? FileManager.default.removeItem(at: outsideFolder) }
+        let outsideFile = outsideFolder.appendingPathComponent("outside.txt")
+        try Data("outside".utf8).write(to: outsideFile)
+        let linkedFolder = temporaryRoot.appendingPathComponent("Linked", isDirectory: true)
+        try FileManager.default.createSymbolicLink(
+            at: linkedFolder,
+            withDestinationURL: outsideFolder
+        )
+
+        let scanner = FileCandidateScanner()
+        XCTAssertTrue(scanner.isSupportedSourceURL(
+            nestedFile,
+            in: temporaryRoot,
+            maximumDepth: 2
+        ))
+        XCTAssertFalse(scanner.isSupportedSourceURL(
+            deeperFile,
+            in: temporaryRoot,
+            maximumDepth: 2
+        ))
+        XCTAssertFalse(scanner.isSupportedSourceURL(
+            linkedFolder.appendingPathComponent("outside.txt"),
+            in: temporaryRoot,
+            maximumDepth: 2
+        ))
+    }
+
     func testTemporarySuffixRemainsIneligibleAtScannerBoundary() throws {
         let partial = temporaryRoot.appendingPathComponent("video.mp4.crdownload")
         try Data("partial".utf8).write(to: partial)

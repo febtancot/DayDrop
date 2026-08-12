@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Displays the most recent local file operations. The controller/store remains
-/// responsible for enforcing the persisted 50-record limit; the view also caps
+/// responsible for enforcing the persisted record limit; the view also caps
 /// its presentation defensively.
 struct RecentActivityView: View {
     @ObservedObject var controller: DayDropController
@@ -10,7 +10,7 @@ struct RecentActivityView: View {
         Array(
             controller.recentOperations
                 .sorted { $0.performedAt > $1.performedAt }
-                .prefix(50)
+                .prefix(LocalMetadataStore.defaultMaximumOperationRecords)
         )
     }
 

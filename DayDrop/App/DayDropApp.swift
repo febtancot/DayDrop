@@ -14,7 +14,7 @@ struct DayDropApp: App {
             } else if controller.isShowingRecentActivity {
                 RecentActivityView(controller: controller)
             } else {
-                MenuBarView(controller: controller, updater: updater)
+                MenuBarView(controller: controller)
             }
         } label: {
             Label(
@@ -31,6 +31,7 @@ struct DayDropApp: App {
 @MainActor
 final class DayDropAppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
+    private var isShowingDeepOrganizationConfirmation = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !DayDropRuntime.isRunningUnitTests else { return }
@@ -46,6 +47,16 @@ final class DayDropAppDelegate: NSObject, NSApplicationDelegate {
                 controller: controller,
                 requiresCompletion: false
             )
+        }
+        controller.onRequestDeepOrganizationConfirmation = { [weak self, weak controller] in
+            guard let self, let controller else { return }
+            // A MenuBarExtra window is transient and is dismissed as soon as
+            // it loses focus. Defer until the button event has completed, then
+            // present an application-modal AppKit alert that owns its window.
+            DispatchQueue.main.async { [weak self, weak controller] in
+                guard let self, let controller else { return }
+                self.presentDeepOrganizationConfirmation(controller: controller)
+            }
         }
 
         Task {
@@ -101,5 +112,33 @@ final class DayDropAppDelegate: NSObject, NSApplicationDelegate {
     private func closeOnboarding() {
         onboardingWindow?.close()
         onboardingWindow = nil
+    }
+
+    private func presentDeepOrganizationConfirmation(
+        controller: DayDropController
+    ) {
+        guard !isShowingDeepOrganizationConfirmation else { return }
+        isShowingDeepOrganizationConfirmation = true
+        defer { isShowingDeepOrganizationConfirmation = false }
+
+        let alert = NSAlert()
+        alert.alertStyle = .critical
+        alert.messageText = "深度整理会改变现有文件夹结构"
+        alert.informativeText = "DayDrop 将移动“下载”目录顶层及下一层文件夹中的文件。原有分类和文件夹结构可能被破坏，且无法自动撤销。确认继续吗？"
+
+        // Cancellation is the safe default. The destructive action requires a
+        // deliberate click and cannot be triggered by pressing Return.
+        let cancelButton = alert.addButton(withTitle: "取消")
+        cancelButton.keyEquivalent = "\r"
+        let confirmButton = alert.addButton(withTitle: "仍要深度整理")
+        confirmButton.hasDestructiveAction = true
+        confirmButton.keyEquivalent = ""
+
+        alert.window.level = .floating
+        alert.window.collectionBehavior.insert(.canJoinAllSpaces)
+        NSApp.activate(ignoringOtherApps: true)
+
+        guard alert.runModal() == .alertSecondButtonReturn else { return }
+        controller.organizeExistingFiles(scope: .includingImmediateSubfolders)
     }
 }
