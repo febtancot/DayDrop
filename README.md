@@ -2,7 +2,7 @@
 
 **Downloads, day by day.**
 
-DayDrop is a local-only macOS 13+ menu-bar app that waits for downloads to finish, then organizes top-level files in the user's Downloads folder by day, month, and year.
+DayDrop is a privacy-first macOS 13+ menu-bar app that waits for downloads to finish, then organizes top-level files in the user's Downloads folder by day, month, and year. File organization and history stay local; the only network path is the optional Sparkle update check against DayDrop's HTTPS website.
 
 ## Current development workflow
 
@@ -40,11 +40,14 @@ The menu-bar panel currently provides:
 - Manual organization, Downloads-folder access, recent operation history, settings, pause/resume, and local status feedback.
 - Compact launch-at-login and completion-notification switches with the same runtime-backed bindings in the main panel and Settings.
 - A Settings destination for general controls, Downloads authorization, and reopening the welcome/setup page.
+- The current version in the menu footer and Settings, plus manual and daily automatic update checks powered by Sparkle 2. Updates require the HTTPS appcast, EdDSA signature, Developer ID signature, and Apple notarization to validate.
 - A standard-titlebar onboarding window so scrolled content cannot overlap the window title or traffic-light controls.
 
 ## Distribution artifact status
 
 `dist/DayDrop-1.0.1.dmg` is the current 2026-08-12 distribution artifact. It contains the latest universal `DayDrop.app` and an `/Applications` installation shortcut. The app and DMG are timestamped with the installed Developer ID identity; Apple notarization returned `Accepted`, the ticket is stapled, and Gatekeeper reports `Notarized Developer ID`. Its SHA-256 is `f26edc3cb9f8ebb54a12471e44354cee7e2a98235eb55e49046597b972b72c32`. Browser, permission, login-item, notification, visual, minimum-OS, and performance acceptance remain separate release gates.
+
+The source is now version 1.0.2 (build 3). It adds in-app version display and Sparkle updates, but it has not yet replaced the published 1.0.1 DMG. `npm run release:mac` generates the notarized DMG and a signed website appcast; `npm run appcast:mac` can regenerate the feed for an already notarized artifact. The Sparkle private key is stored in the local login Keychain under `com.liuyuhang.DayDrop`; only the public key is embedded in the app.
 
 The selected app-icon master is `Design/SelectedIcon/DayDrop-AppIcon-Source-1254.png`. Xcode consumes the complete macOS icon set under `DayDrop/Resources/Assets.xcassets/AppIcon.appiconset/`.
 

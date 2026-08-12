@@ -18,11 +18,14 @@ This matrix separates deterministic automated evidence from signed-app and real-
 | AC-12 | Menu-bar panel shows all of today's files | SwiftUI build/type checks; source audit of today-folder create/open path; visual fixture inspection required | Static integration pass; visual/manual pending |
 | AC-13 | Today's list refreshes after changes | Real Dispatch-source event test; signed-app two-second timing required | Automated pass; manual timing pending |
 | AC-14 | Denied folder permission cannot be bypassed | Bookmark/entitlement checks; signed denial flow required | Automated boundary pass; manual pending |
-| AC-15 | All functionality works offline | No network client/entitlement; network-disabled run required | Static pass; manual pending |
+| AC-15 | File organization, history, and settings work offline; update checks fail safely without affecting organization | Network-disabled run and updater failure-isolation check required | Architectural separation pass; manual pending |
+| UP-01 | Current version and build are visible in the menu and Settings | Bundle-version regression test and rendered Settings inspection | Automated and visual pass |
+| UP-02 | Manual and daily checks use the signed official HTTPS feed without uploading file data | Live Sparkle log, online feed verification, entitlement and source audit | Live feed pass; update-install pending |
+| UP-03 | Published update metadata and packages cannot be substituted by a website-only compromise | Signed appcast/release-notes/archive verification, Developer ID, notarization, extraction-before-validation setting | Cryptographic pipeline pass; end-to-end install pending |
 
 ## Current development evidence — 2026-08-12
 
-- The current source passes 76 XCTest cases with 0 failures on arm64 macOS.
+- The current source passes 77 XCTest cases with 0 failures on arm64 macOS.
 - Routing and migration tests cover the readable `Day`, `Month`, and `Year`
   prefixes, full ISO-style dates, legacy numeric managed-folder migration, and
   persistence of prefixed paths containing spaces. Legacy recovery tests also
@@ -31,6 +34,8 @@ This matrix separates deterministic automated evidence from signed-app and real-
 - Source inspection confirms that the today-module action uses archive target preparation, ownership evaluation, managed-folder persistence, rollback of an empty newly created folder on persistence failure, today-monitor refresh, and Finder open. A dedicated Finder/UI automation test has not yet been added.
 - Main-panel and Settings toggles share the same runtime-backed controller methods and compact visual style.
 - The onboarding window now uses a standard non-transparent title bar, preventing its ScrollView content from entering the title/traffic-light region by construction.
+- The 1.0.2 Settings page was rendered and inspected with the DayDrop icon, `版本 1.0.2（构建 3）`, automatic-check toggle, and manual update action visible without clipping.
+- A sandboxed 1.0.2 Debug instance fetched the production appcast and logged `OK: EdDSA signature is correct for appcast`. The official feed, release notes, and historical DMGs carry DayDrop EdDSA signatures; feed XML validation and local signature verification pass.
 - These checks do not establish visual polish, VoiceOver quality, Developer ID behavior, Intel compatibility of the Debug build, minimum-macOS compatibility, or public-release readiness.
 
 ## Current release-package evidence — 2026-08-12

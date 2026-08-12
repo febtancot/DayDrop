@@ -7,6 +7,7 @@ import SwiftUI
 /// the same controller bindings so both locations always reflect runtime state.
 struct SettingsView: View {
     @ObservedObject var controller: DayDropController
+    @ObservedObject var updater: DayDropUpdater
 
     var body: some View {
         VStack(spacing: 0) {
@@ -51,6 +52,16 @@ struct SettingsView: View {
                     isOn: Binding(
                         get: { controller.launchAtLogin },
                         set: { controller.setLaunchAtLogin($0) }
+                    )
+                )
+
+                SettingsToggleRow(
+                    title: "自动检查更新",
+                    systemImage: "arrow.triangle.2.circlepath",
+                    accessibilityHint: "每天在线检查一次新版本；不会上传文件或文件名",
+                    isOn: Binding(
+                        get: { updater.automaticallyChecksForUpdates },
+                        set: { updater.setAutomaticallyChecksForUpdates($0) }
                     )
                 )
 
@@ -101,6 +112,40 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityHint("再次查看首次运行时的介绍与设置页面")
+            }
+
+            SettingsSection(title: "关于") {
+                HStack(spacing: 10) {
+                    Image(nsImage: NSApplication.shared.applicationIconImage)
+                        .resizable()
+                        .interpolation(.high)
+                        .frame(width: 36, height: 36)
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("DayDrop")
+                            .font(.subheadline.weight(.semibold))
+                        Text(DayDropVersionInfo.current.detailedDisplay)
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                        if let availableVersion = updater.availableVersion {
+                            Text("v\(availableVersion) 可更新")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.accentColor)
+                        }
+                    }
+
+                    Spacer(minLength: 8)
+
+                    Button(updater.availableVersion == nil
+                        ? "检查更新…"
+                        : "安装更新…") {
+                        updater.checkForUpdates()
+                    }
+                    .controlSize(.small)
+                    .disabled(!updater.canCheckForUpdates)
+                    .accessibilityHint("在线检查是否有可用的 DayDrop 新版本")
+                }
             }
 
             if let message = controller.statusMessage, !message.isEmpty {

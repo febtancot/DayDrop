@@ -30,5 +30,21 @@
     <string>Copyright © 2026 DayDrop.</string>
     <key>NSDownloadsFolderUsageDescription</key>
     <string>DayDrop 需要访问“下载”文件夹，以便在下载完成后按日期整理顶层文件。</string>
+    <key>SUFeedURL</key>
+    <string>https://daydrop.liveby.app/updates/appcast.xml</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUScheduledCheckInterval</key>
+    <integer>86400</integer>
+    <key>SUAutomaticallyUpdate</key>
+    <false/>
+    <key>SUEnableInstallerLauncherService</key>
+    <true/>
+    <key>SURequireSignedFeed</key>
+    <true/>
+    <key>SUVerifyUpdateBeforeExtraction</key>
+    <true/>
+    <key>SUPublicEDKey</key>
+    <string>M9f9n+m1vjXZTE+VEGB93FbCyKgZM+zbfI8ppg1zc3Q=</string>
 </dict>
 </plist>

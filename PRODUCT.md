@@ -21,7 +21,8 @@ DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads 
   boundaries, including evidence-backed recovery and renaming of legacy
   numeric folders created or used by earlier DayDrop builds.
 - Collision-safe moves, pause/resume, a complete interactive today list, notifications, and the latest 50 local operation records.
-- A Settings destination for login launch, completion notifications, Downloads authorization, and reopening the welcome/setup page.
+- A Settings destination for login launch, completion notifications, automatic update checks, Downloads authorization, version information, and reopening the welcome/setup page.
+- Manual and daily automatic checks for signed, notarized updates from the official HTTPS website; update checks never upload file names or file contents.
 
 ## Current interaction model
 
@@ -32,7 +33,7 @@ DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads 
 
 ## Out of scope
 
-File-type or website rules, multiple watched folders, custom date formats, AI inspection, renaming, duplicate detection, cloud sync, browser extensions, automatic deletion, and undo are not part of the MVP.
+File-type or website rules, multiple watched folders, custom date formats, AI inspection, renaming, duplicate detection, cloud sync, browser extensions, automatic deletion, unattended automatic update installation, and undo are not part of the MVP.
 
 ## Success criteria
 

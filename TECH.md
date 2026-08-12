@@ -6,12 +6,13 @@ The native MVP uses a SwiftUI `MenuBarExtra` with window style, an AppKit folder
 
 ## Components
 
-- **App/UI:** menu-bar popover, standard-titlebar onboarding window, clickable today module, activity history, full Settings destination, and a shared compact toggle style.
+- **App/UI:** menu-bar popover, standard-titlebar onboarding window, clickable today module, activity history, full Settings destination, current-version display, manual update action, and a shared compact toggle style.
 - **Coordinator:** owns user-visible state, first-run/session baselines, retries, day changes, moves, migration, and UI refreshes.
 - **Folder access:** creates and resolves a security-scoped bookmark chosen through `NSOpenPanel`.
 - **Monitor:** watches the root and current-day folder without polling while idle; pending candidates use a short retry timer.
 - **Archive engine:** calculates routes, rejects path traversal and symbolic-link archive components, validates volume/inode identities, holds advisory locks through file moves, and performs restartable managed-folder migrations.
 - **Local stores:** managed-folder metadata and the latest 50 operation records, stored only in the app container.
+- **Updater:** Sparkle 2.9.5 reads the HTTPS appcast, verifies the signed feed and release notes, validates the EdDSA-signed archive before extraction, then uses its installer XPC service to replace the sandboxed app.
 
 ## Data and control flow
 
@@ -26,16 +27,16 @@ Settings/onboarding flow: main panel → Settings → reopen welcome page. First
 - Swift and SwiftUI/AppKit
 - macOS 13 Ventura or later
 - Apple Silicon and Intel (`ARCHS_STANDARD`)
-- No third-party runtime dependencies or network services
+- Sparkle 2.9.5, pinned through Swift Package Manager
 - XcodeGen is used only to generate the checked-out Xcode project from `project.yml`.
 
 ## Security, privacy, reliability, and performance
 
-- App Sandbox with user-selected read/write access, app-scoped bookmark entitlement, and a persistent security-scoped bookmark.
-- No file-content reads beyond metadata/open-state checks; no network entitlement.
+- App Sandbox with user-selected read/write access, app-scoped bookmark entitlement, Sparkle installer mach-service exceptions, and a persistent security-scoped bookmark.
+- No file-content upload. The network client entitlement is used only to retrieve the HTTPS appcast, signed release notes, and signed/notarized update package when update checks are enabled.
 - Atomic local metadata writes, persisted migration intent, source/destination identity checks, ownership xattrs, source-preserving failures, collision-safe names, and an immediate pause when metadata or directory safety checks fail.
 - Dispatch filesystem events keep idle CPU near zero; UI refresh after relevant events targets two seconds.
-- The source contains no network client or network entitlement.
+- Automatic update checks default on at a 24-hour interval and remain user-controllable in Settings; automatic installation remains off.
 - [Unknown] The under-50-MB memory target and browser-specific behavior require measurement in a signed release-like build.
 
 ## Verified commands
@@ -68,4 +69,5 @@ This command generates and builds the arm64 Debug app, terminates DayDrop, moves
 - The current `/Applications/DayDrop.app` used during development is an arm64 ad-hoc-signed Debug build installed by `npm run mac`; its successful launch does not prove Developer ID, Gatekeeper, notarization, Intel, or minimum-macOS release behavior.
 - Path identities are revalidated immediately before and throughout recursive operations. A fully adversarial same-path replacement race would require a future file-descriptor-relative `openat`/`renameat` implementation; this is tracked separately from normal Downloads-folder operation.
 - `npm run release:mac` performs credential preflight, tests, static analysis, universal build, entitlement/signature validation, immutable submission tracking, notarization recovery, stapling, Gatekeeper checks, mounted-content verification, and final SHA-256 generation.
+- The release workflow also re-signs Sparkle's nested helpers with the same Developer ID identity and generates `Product_Site/updates/appcast.xml` with EdDSA signatures. The private update key never enters the repository or website.
 - [Unknown] Mac App Store entitlements and distribution-channel automation await distribution decisions.

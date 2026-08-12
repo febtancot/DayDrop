@@ -34,15 +34,12 @@ struct OnboardingView: View {
     private var introduction: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 13) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color.accentColor.gradient)
-                        .frame(width: 52, height: 52)
-                    Image(systemName: "arrow.down.doc.fill")
-                        .font(.system(size: 24, weight: .semibold))
-                        .foregroundStyle(.white)
-                }
-                .accessibilityHidden(true)
+                Image(nsImage: NSApplication.shared.applicationIconImage)
+                    .resizable()
+                    .interpolation(.high)
+                    .antialiased(true)
+                    .frame(width: 52, height: 52)
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text("欢迎使用 DayDrop")
@@ -138,7 +135,7 @@ struct OnboardingView: View {
 
     private var privacyNote: some View {
         Label {
-            Text("所有整理和记录都只保存在这台 Mac 上；DayDrop 不上传文件或文件名，也不需要网络连接。")
+            Text("所有整理和记录都只保存在这台 Mac 上；DayDrop 不上传文件或文件名。启用更新检查时，仅连接官方网站获取版本信息与安装包。")
                 .fixedSize(horizontal: false, vertical: true)
         } icon: {
             Image(systemName: "hand.raised.fill")

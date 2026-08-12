@@ -13,6 +13,7 @@
 		0914228DCF619F8517B5CEA0 /* ArchiveDayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29A40F58B6AAF696797D5EE2 /* ArchiveDayTests.swift */; };
 		179A6A4F3B84E21310CBC206 /* ArchiveEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282B8CB471EE2B4DD5959590 /* ArchiveEngine.swift */; };
 		195482BA379ED90A9793F2B4 /* LegacyArchiveFolderRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D021327F2247305881375B59 /* LegacyArchiveFolderRecovery.swift */; };
+		1A90CC38DEC6B6B000E3A4FE /* DayDropUpdaterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C5F0C9B58DAEADB495DAFE /* DayDropUpdaterTests.swift */; };
 		215D36E6F1E43C8695359B51 /* DayDropCompactToggleStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D444756A6A8B747A155784E /* DayDropCompactToggleStyle.swift */; };
 		2AE380B070F2511458A03A78 /* ArchiveDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 531E9AC14E97B8EC4624A474 /* ArchiveDay.swift */; };
 		2CB2F0C728168B0E348AA68F /* ExistingFileDateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1996BEEEB293E398D908C932 /* ExistingFileDateResolver.swift */; };
@@ -24,6 +25,7 @@
 		494B737F35FCC7619A58CA78 /* LocalMetadataStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999DB47D4B664FF26C6F03BC /* LocalMetadataStoreTests.swift */; };
 		4B30D7C49FD831CBB5841837 /* ArchivePathRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BAA36BA656F2761207C1C01 /* ArchivePathRouterTests.swift */; };
 		4ED851D3F3F5FE873C405AE2 /* ExistingFileDateResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92D97D82AE48E6D582F6AF7B /* ExistingFileDateResolverTests.swift */; };
+		5569A5E1EB4FEF9C9228B03C /* DayDropUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E892CCC4F3C204BCB0BE033 /* DayDropUpdater.swift */; };
 		6181820ABDFCBBED344EFD59 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7E0DDEF5E0F2A380B4791658 /* Assets.xcassets */; };
 		686EBF1F72F55DC437E090E5 /* DownloadsBookmarkStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1719A85DB8E07586CBCABC /* DownloadsBookmarkStoreTests.swift */; };
 		6F6626F66174C559A6BB765B /* ArchiveEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97D819243CE94B5B41FD6B49 /* ArchiveEngineTests.swift */; };
@@ -40,6 +42,7 @@
 		C0F09A4904EBC691E58212C0 /* DayDropController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDA11243B45BDB99345C28E /* DayDropController.swift */; };
 		C551E8368638E6D7F4785C63 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79D43D37C0B4C918BA15A741 /* SettingsView.swift */; };
 		C58802E7E6532C8C931CE451 /* LocalMetadataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 350A7FF3F6F6173CAEE8B3AA /* LocalMetadataStore.swift */; };
+		E02250031F5293E412137E10 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 3FABA12B4F839149A8562376 /* Sparkle */; };
 		EE2554D2B89DC3C4F61E961F /* DayDropApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EBE187B958AF3EFFFF898E0 /* DayDropApp.swift */; };
 		F5C54FF0E1E7192CC0DAE24A /* FileSizeStabilityTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 862B022164A5E72F870139F0 /* FileSizeStabilityTrackerTests.swift */; };
 /* End PBXBuildFile section */
@@ -64,6 +67,7 @@
 		282B8CB471EE2B4DD5959590 /* ArchiveEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveEngine.swift; sourceTree = "<group>"; };
 		29A40F58B6AAF696797D5EE2 /* ArchiveDayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveDayTests.swift; sourceTree = "<group>"; };
 		2C1719A85DB8E07586CBCABC /* DownloadsBookmarkStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsBookmarkStoreTests.swift; sourceTree = "<group>"; };
+		2E892CCC4F3C204BCB0BE033 /* DayDropUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropUpdater.swift; sourceTree = "<group>"; };
 		350A7FF3F6F6173CAEE8B3AA /* LocalMetadataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMetadataStore.swift; sourceTree = "<group>"; };
 		3820F4D7702C40C9107B621C /* FileCandidateScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileCandidateScanner.swift; sourceTree = "<group>"; };
 		43C78B055DBB1F7D4DEC2109 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
@@ -89,12 +93,24 @@
 		9C8C6068DCF88B066665F080 /* DownloadCandidatePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadCandidatePolicy.swift; sourceTree = "<group>"; };
 		A18000441BF66A1CC61632C6 /* RecentActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentActivityView.swift; sourceTree = "<group>"; };
 		AB77B2A2A64A84DF66FD2DEF /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		C1C5F0C9B58DAEADB495DAFE /* DayDropUpdaterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropUpdaterTests.swift; sourceTree = "<group>"; };
 		C63474F8E496204470EE91AB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D021327F2247305881375B59 /* LegacyArchiveFolderRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyArchiveFolderRecovery.swift; sourceTree = "<group>"; };
 		E12E62542054D55F0FD94AD1 /* DirectoryEventMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryEventMonitorTests.swift; sourceTree = "<group>"; };
 		F6C6D33574C2C99F26F325C5 /* DownloadsBookmarkStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsBookmarkStore.swift; sourceTree = "<group>"; };
 		FDDA11243B45BDB99345C28E /* DayDropController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		32F9FFDC6F7FDC4B693190BA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E02250031F5293E412137E10 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		04E5EE324B5241C95263CA5D /* Products */ = {
@@ -143,6 +159,7 @@
 			isa = PBXGroup;
 			children = (
 				529479DBFBCD04F218D35435 /* BatchNotificationService.swift */,
+				2E892CCC4F3C204BCB0BE033 /* DayDropUpdater.swift */,
 				9653569ED6FB6B7F2371F314 /* DirectoryEventMonitor.swift */,
 				F6C6D33574C2C99F26F325C5 /* DownloadsBookmarkStore.swift */,
 				350A7FF3F6F6173CAEE8B3AA /* LocalMetadataStore.swift */,
@@ -163,6 +180,7 @@
 		95FEE407136A0395AE9823B3 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C1C5F0C9B58DAEADB495DAFE /* DayDropUpdaterTests.swift */,
 				E12E62542054D55F0FD94AD1 /* DirectoryEventMonitorTests.swift */,
 				2C1719A85DB8E07586CBCABC /* DownloadsBookmarkStoreTests.swift */,
 				999DB47D4B664FF26C6F03BC /* LocalMetadataStoreTests.swift */,
@@ -265,6 +283,7 @@
 			buildPhases = (
 				229123DD550F951E07CDC837 /* Sources */,
 				8C09856095541A37FD392181 /* Resources */,
+				32F9FFDC6F7FDC4B693190BA /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -272,6 +291,7 @@
 			);
 			name = DayDrop;
 			packageProductDependencies = (
+				3FABA12B4F839149A8562376 /* Sparkle */,
 			);
 			productName = DayDrop;
 			productReference = 6376A464D9EDA8F940C66061 /* DayDrop.app */;
@@ -303,6 +323,9 @@
 			);
 			mainGroup = 942915A6DB77EFD179542E53;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F97FE1D297EA7617AD242675 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 04E5EE324B5241C95263CA5D /* Products */;
 			projectDirPath = "";
@@ -338,6 +361,7 @@
 				EE2554D2B89DC3C4F61E961F /* DayDropApp.swift in Sources */,
 				215D36E6F1E43C8695359B51 /* DayDropCompactToggleStyle.swift in Sources */,
 				C0F09A4904EBC691E58212C0 /* DayDropController.swift in Sources */,
+				5569A5E1EB4FEF9C9228B03C /* DayDropUpdater.swift in Sources */,
 				34396CCFA267EDA78E9DF84E /* DirectoryEventMonitor.swift in Sources */,
 				3DE1F373474496AA5686FA78 /* DownloadCandidatePolicy.swift in Sources */,
 				7DE665848B6B95B1D67088C2 /* DownloadsBookmarkStore.swift in Sources */,
@@ -363,6 +387,7 @@
 				4B30D7C49FD831CBB5841837 /* ArchivePathRouterTests.swift in Sources */,
 				01967B35BA8BFA9B0496FEA0 /* ArchiveTargetOwnershipPolicyTests.swift in Sources */,
 				AB661D318FA23C8F42862818 /* CollisionNameResolverTests.swift in Sources */,
+				1A90CC38DEC6B6B000E3A4FE /* DayDropUpdaterTests.swift in Sources */,
 				2DA78CCB020E93C8009FEC78 /* DirectoryEventMonitorTests.swift in Sources */,
 				3BC67300D4778F5DA7FB76E7 /* DownloadCandidatePolicyTests.swift in Sources */,
 				686EBF1F72F55DC437E090E5 /* DownloadsBookmarkStoreTests.swift in Sources */,
@@ -437,7 +462,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -456,7 +481,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -520,7 +545,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -533,7 +558,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -617,6 +642,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F97FE1D297EA7617AD242675 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.9.5;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3FABA12B4F839149A8562376 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F97FE1D297EA7617AD242675 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5967DBBD1C1E0FB5A2E768D3 /* Project object */;
 }

@@ -7,6 +7,7 @@ import SwiftUI
 /// away from the actual monitor, login item, or notification configuration.
 struct MenuBarView: View {
     @ObservedObject var controller: DayDropController
+    @ObservedObject var updater: DayDropUpdater
 
     private let panelWidth: CGFloat = 340
 
@@ -222,6 +223,15 @@ struct MenuBarView: View {
             }
 
             MenuActionRow(
+                title: updater.availableVersion.map { "安装更新 v\($0)…" } ?? "检查更新…",
+                systemImage: "arrow.triangle.2.circlepath",
+                isEnabled: updater.canCheckForUpdates,
+                accessibilityHint: "在线检查是否有可用的 DayDrop 新版本"
+            ) {
+                updater.checkForUpdates()
+            }
+
+            MenuActionRow(
                 title: "设置",
                 systemImage: "gearshape",
                 accessibilityHint: "进入 DayDrop 设置"
@@ -270,6 +280,11 @@ struct MenuBarView: View {
                 .help(controller.folderDisplayName)
 
             Spacer(minLength: 8)
+
+            Text(DayDropVersionInfo.current.compactDisplay)
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.tertiary)
+                .accessibilityLabel(DayDropVersionInfo.current.detailedDisplay)
 
             Button("退出 DayDrop") {
                 controller.quit()

@@ -5,20 +5,23 @@ import SwiftUI
 struct DayDropApp: App {
     @NSApplicationDelegateAdaptor(DayDropAppDelegate.self) private var appDelegate
     @StateObject private var controller = DayDropController.shared
+    @StateObject private var updater = DayDropUpdater()
 
     var body: some Scene {
         MenuBarExtra {
             if controller.isShowingSettings {
-                SettingsView(controller: controller)
+                SettingsView(controller: controller, updater: updater)
             } else if controller.isShowingRecentActivity {
                 RecentActivityView(controller: controller)
             } else {
-                MenuBarView(controller: controller)
+                MenuBarView(controller: controller, updater: updater)
             }
         } label: {
             Label(
-                "DayDrop",
-                systemImage: controller.isPaused ? "drop" : "drop.fill"
+                updater.availableVersion.map { "DayDrop，版本 \($0) 可更新" } ?? "DayDrop",
+                systemImage: updater.availableVersion == nil
+                    ? (controller.isPaused ? "drop" : "drop.fill")
+                    : "arrow.down.circle.fill"
             )
         }
         .menuBarExtraStyle(.window)

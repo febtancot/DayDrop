@@ -2,7 +2,7 @@
 
 ## Current status
 
-The PRD v1.1 MVP is implemented. The current source passes 76 automated tests, and the latest arm64 Debug build is installed locally through `npm run mac`. Version 1.0.1 was built as a universal DMG through `npm run release:mac`, Developer ID signed, accepted by Apple notarization, stapled, and accepted by Gatekeeper. Signed real-browser, permission-denial, login-item, notification, visual, minimum-OS, and performance acceptance remain open.
+The PRD v1.1 MVP is implemented. The current 1.0.2 source adds version display and signed Sparkle updates; 77 tests, strict compilation, static analysis, universal build, Settings rendering, and a live signed-feed check pass. Version 1.0.1 remains the published universal DMG: Developer ID signed, accepted by Apple notarization, stapled, and accepted by Gatekeeper. Signed real-browser, permission-denial, login-item, notification, updater installation, broader visual, minimum-OS, and performance acceptance remain open.
 
 - Native macOS 13+ menu-bar app and first-run onboarding.
 - Security-scoped Downloads-folder authorization with no direct-path fallback.
@@ -12,7 +12,8 @@ The PRD v1.1 MVP is implemented. The current source passes 76 automated tests, a
 - Pause/resume baselines, an interactive today module that safely creates/opens today's managed folder, recent 50 records, login item, and optional notifications.
 - A dedicated Settings page, runtime-backed quick settings, and a safely reopenable welcome/setup window.
 - A compact shared toggle style and standard onboarding title bar based on current visual feedback.
-- App Sandbox, hardened runtime, Apple Silicon/Intel Release output, and local-only data flow.
+- Current-version display in the menu and Settings, manual/daily update checks, a signed HTTPS appcast, and a release pipeline that stages Sparkle updates without exposing the private key.
+- App Sandbox, hardened runtime, Apple Silicon/Intel Release output, local file data, and a narrowly scoped official-site update network path.
 - npm development automation for build, test, recoverable `/Applications` replacement, signature verification, and installed-path launch.
 
 ## Current focus
@@ -24,7 +25,7 @@ Complete visual and signed real-Mac acceptance against the notarized distributio
 1. Native project and tested date/path core — complete.
 2. Authorization, monitoring, move/migration engine, history, and notifications — implemented.
 3. Menu-bar and first-run UI — implemented and iterated from user screenshots; systematic visual/VoiceOver/minimum-OS acceptance remains pending.
-4. Automated verification — current source passes 76 tests; the earlier baseline also passed strict concurrency, static analysis, universal Release build, and ad-hoc entitlement/signature checks.
+4. Automated verification — current source passes 77 tests, strict concurrency/warnings-as-errors compilation, static analysis, and an `arm64` + `x86_64` universal Release build.
 5. Development installation — `npm run mac` builds, safely replaces `/Applications/DayDrop.app`, verifies, and launches the arm64 Debug app; complete.
 6. Distribution packaging — current-source universal Developer ID DMG, `.p8` notarization, stapling, and Gatekeeper verification complete; signed real-Mac acceptance remains pending.
 

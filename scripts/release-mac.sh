@@ -58,7 +58,7 @@ notary_issuer=${NOTARY_ISSUER:-83cbc057-c415-4c90-85fd-26be41761bd1}
 
 required_commands=(
     awk caffeinate codesign ditto grep hdiutil jq lipo npm plutil security
-    shasum spctl stat tee xcodebuild xcodegen xcrun
+    shasum spctl stat tee xcodebuild xcodegen xcrun xmllint
 )
 for command_name in $required_commands; do
     command -v "$command_name" >/dev/null || {
@@ -100,6 +100,7 @@ stage_dir=""
 mount_dir=""
 wait_log=""
 entitlements_dump=""
+expanded_entitlements_file=""
 cleanup() {
     if [[ -n "$mount_dir" && -d "$mount_dir" ]]; then
         hdiutil detach "$mount_dir" >/dev/null 2>&1 || true
@@ -113,6 +114,9 @@ cleanup() {
     fi
     if [[ -n "$entitlements_dump" && -f "$entitlements_dump" && "$entitlements_dump" == /tmp/DayDrop-entitlements.* ]]; then
         rm -f "$entitlements_dump"
+    fi
+    if [[ -n "$expanded_entitlements_file" && -f "$expanded_entitlements_file" && "$expanded_entitlements_file" == /tmp/DayDrop-expanded-entitlements.* ]]; then
+        rm -f "$expanded_entitlements_file"
     fi
 }
 trap cleanup EXIT INT TERM
@@ -179,12 +183,45 @@ if [[ -z "$submission_id" ]]; then
 
     [[ -d "$app" ]] || { print -u2 "错误：找不到 Release 应用：$app"; exit 1; }
 
-    print "正在使用 Developer ID 签名应用…"
+    built_bundle_id_for_signing=$(plutil -extract CFBundleIdentifier raw -o - "$app/Contents/Info.plist")
+    [[ "$built_bundle_id_for_signing" == "com.liuyuhang.DayDrop" ]] || {
+        print -u2 "错误：签名前的 Bundle ID 不符合预期：$built_bundle_id_for_signing"
+        exit 1
+    }
+    expanded_entitlements_file=$(mktemp /tmp/DayDrop-expanded-entitlements.XXXXXX)
+    sed \
+        's/$(PRODUCT_BUNDLE_IDENTIFIER)/com.liuyuhang.DayDrop/g' \
+        "$entitlements_file" > "$expanded_entitlements_file"
+    plutil -lint "$expanded_entitlements_file" >/dev/null
+    if grep -Fq '$(PRODUCT_BUNDLE_IDENTIFIER)' "$expanded_entitlements_file"; then
+        print -u2 "错误：签名权限中仍包含未展开的 PRODUCT_BUNDLE_IDENTIFIER。"
+        exit 1
+    fi
+
+    sparkle_framework="$app/Contents/Frameworks/Sparkle.framework"
+    sparkle_root="$sparkle_framework/Versions/B"
+    [[ -d "$sparkle_root/XPCServices/Installer.xpc" ]] || {
+        print -u2 "错误：Release 应用缺少 Sparkle Installer.xpc。"
+        exit 1
+    }
+
+    print "正在使用 Developer ID 签名 Sparkle 更新组件与应用…"
+    codesign --force --options runtime --timestamp \
+        --sign "$sign_identity" "$sparkle_root/XPCServices/Installer.xpc"
+    codesign --force --options runtime --timestamp \
+        --preserve-metadata=entitlements \
+        --sign "$sign_identity" "$sparkle_root/XPCServices/Downloader.xpc"
+    codesign --force --options runtime --timestamp \
+        --sign "$sign_identity" "$sparkle_root/Autoupdate"
+    codesign --force --options runtime --timestamp \
+        --sign "$sign_identity" "$sparkle_root/Updater.app"
+    codesign --force --options runtime --timestamp \
+        --sign "$sign_identity" "$sparkle_framework"
     codesign --force \
         --options runtime \
         --timestamp \
         --generate-entitlement-der \
-        --entitlements "$entitlements_file" \
+        --entitlements "$expanded_entitlements_file" \
         --sign "$sign_identity" \
         "$app"
 
@@ -211,7 +248,7 @@ if [[ -z "$submission_id" ]]; then
     entitlements_dump=$(mktemp /tmp/DayDrop-entitlements.XXXXXX)
     codesign -d --entitlements - --xml "$app" > "$entitlements_dump"
     entitlements_json=$(plutil -convert json -o - "$entitlements_dump")
-    expected_entitlements_json=$(plutil -convert json -o - "$entitlements_file")
+    expected_entitlements_json=$(plutil -convert json -o - "$expanded_entitlements_file")
     [[ "$(jq -S . <<< "$entitlements_json")" == "$(jq -S . <<< "$expected_entitlements_json")" ]] || {
         print -u2 "错误：构建产物权限与 DayDrop.entitlements 不完全一致。"
         print -u2 "实际权限："
@@ -222,10 +259,22 @@ if [[ -z "$submission_id" ]]; then
     for entitlement_key in \
         com.apple.security.app-sandbox \
         com.apple.security.files.bookmarks.app-scope \
-        com.apple.security.files.user-selected.read-write; do
+        com.apple.security.files.user-selected.read-write \
+        com.apple.security.network.client; do
         jq -e --arg key "$entitlement_key" '.[$key] == true' \
             <<< "$entitlements_json" >/dev/null || {
             print -u2 "错误：缺少或禁用了必要权限 $entitlement_key。"
+            rm -f "$entitlements_dump"
+            exit 1
+        }
+    done
+    for mach_service in \
+        com.liuyuhang.DayDrop-spks \
+        com.liuyuhang.DayDrop-spki; do
+        jq -e --arg service "$mach_service" \
+            '.["com.apple.security.temporary-exception.mach-lookup.global-name"] | index($service) != null' \
+            <<< "$entitlements_json" >/dev/null || {
+            print -u2 "错误：缺少 Sparkle 沙盒通信权限 $mach_service。"
             rm -f "$entitlements_dump"
             exit 1
         }
@@ -262,6 +311,25 @@ if [[ -z "$submission_id" ]]; then
     }
     [[ -f "$app/Contents/Resources/AppIcon.icns" ]] || {
         print -u2 "错误：Release 应用缺少 AppIcon.icns。"
+        exit 1
+    }
+    [[ "$(plutil -extract SUFeedURL raw -o - "$app/Contents/Info.plist")" \
+        == "https://daydrop.liveby.app/updates/appcast.xml" ]] || {
+        print -u2 "错误：Sparkle 更新 Feed 地址不符合预期。"
+        exit 1
+    }
+    [[ "$(plutil -extract SUEnableInstallerLauncherService raw -o - "$app/Contents/Info.plist")" \
+        == "true" ]] || {
+        print -u2 "错误：沙盒应用未启用 Sparkle Installer Launcher Service。"
+        exit 1
+    }
+    [[ "$(plutil -extract SUVerifyUpdateBeforeExtraction raw -o - "$app/Contents/Info.plist")" \
+        == "true" ]] || {
+        print -u2 "错误：签名 Feed 未启用下载包解压前验证。"
+        exit 1
+    }
+    [[ -n "$(plutil -extract SUPublicEDKey raw -o - "$app/Contents/Info.plist")" ]] || {
+        print -u2 "错误：缺少 Sparkle EdDSA 公钥。"
         exit 1
     }
 
@@ -387,3 +455,7 @@ print "$final_sha  ${dmg:t}" > "$checksum_file"
 print "发布完成：$dmg"
 print "SHA-256：$final_sha"
 print "公证日志：$notary_log"
+
+print "正在生成网站更新 Feed…"
+SPARKLE_GENERATE_APPCAST="$release_derived_data/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_appcast" \
+    "$project_dir/scripts/generate-appcast.sh" "$dmg"

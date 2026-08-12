@@ -1,0 +1,34 @@
+<?xml version="1.0" standalone="yes"?>
+<!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+-->
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>DayDrop</title>
+        <item>
+            <title>1.0.1</title>
+            <pubDate>Wed, 12 Aug 2026 16:43:01 +0800</pubDate>
+            <link>https://daydrop.liveby.app/</link>
+            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#updates</sparkle:fullReleaseNotesLink>
+            <sparkle:version>2</sparkle:version>
+            <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink sparkle:edSignature="6btacz4pbSmVX0R9IOF0f56C49iwzlRgXEfXo1Yq16unzK/y10OItNUZsxwMZGAr0C25qYMTlUjsMe+G7qFJCw==" sparkle:length="470">https://daydrop.liveby.app/downloads/DayDrop-1.0.1.md</sparkle:releaseNotesLink>
+            <enclosure sparkle:edSignature="JL9w41ay9acFktvnIKgBD2Bz6PslGRkcHGQcNzHScZNKFcCoiqNAqs2/uIoAfG6ySyP3m/ZFvfPbbxibKvvMDQ==" url="https://daydrop.liveby.app/downloads/DayDrop-1.0.1.dmg" length="3714599" type="application/octet-stream"/>
+        </item>
+        <item>
+            <title>1.0.0</title>
+            <pubDate>Wed, 12 Aug 2026 12:31:01 +0800</pubDate>
+            <link>https://daydrop.liveby.app/</link>
+            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#updates</sparkle:fullReleaseNotesLink>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure sparkle:edSignature="j+H7s2oBtjs5cp9NB8hsdP/3sY+ww4smvu3q42t9TjgDLyzis5byTdTyQEvTUnAHwkE5kponWUZ4Q6vhzgqQBA==" url="https://daydrop.liveby.app/downloads/DayDrop-1.0.0.dmg" length="3668033" type="application/octet-stream"/>
+        </item>
+    </channel>
+</rss>
+<!-- sparkle-signatures:
+edSignature: zpacu/2iJoT5pIdxQhQD1nBa5qCaA+Nn5EVjN9h2Sc77JXlEaNbBKOIs+TX9uY6pqQ0lo2nAxufjXAI1d9A+DA==
+length: 2156
+-->
