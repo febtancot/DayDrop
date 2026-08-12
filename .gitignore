@@ -4,3 +4,16 @@ DerivedData/
 .DS_Store
 build/
 
+# Xcode workspace user data
+*.xcworkspace/xcuserdata/
+
+# Release artifacts
+dist/
+
+# Local generated reports/notes
+output/
+raw/
+
+# macOS Finder metadata
+._*
+
