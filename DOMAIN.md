@@ -12,7 +12,7 @@
 
 ## Core relationships
 
-A file has one full source date. That date maps to one expected relative archive path. A managed day-folder record binds the full date to its current relative path, so a directory named `0811` is never interpreted without its recorded year.
+A file has one full source date. That date maps to one expected relative archive path. A managed day-folder record binds the full date to its current relative path. Visible folder names use `Day`, `Month`, and `Year` prefixes plus complete ISO-style dates so their meaning remains clear outside the hierarchy.
 
 ## File lifecycle
 
@@ -22,12 +22,17 @@ A file has one full source date. That date maps to one expected relative archive
 4. A completed runtime download receives today's local date; a manual import receives its file metadata date.
 5. The file moves to the collision-safe destination and the managed-folder registry and operation history update.
 6. Before a managed folder changes hierarchy, DayDrop atomically persists a migration intent with the expected destination state; startup recovery resumes or finalizes that intent without guessing from a numeric path.
+7. During the readable-name upgrade, an unregistered legacy numeric folder may
+   be recovered only when a persisted successful operation still points to an
+   existing file inside it and the operation date resolves the old route to one
+   unambiguous full date. The folder then receives the normal ownership marker
+   and follows the same restartable migration path.
 
 ## Today-folder entry behavior
 
 Opening the **今日下载** module is a domain action, not only Finder navigation:
 
-1. Resolve the current local calendar day and its expected `MMDD/` route.
+1. Resolve the current local calendar day and its expected `Day YYYY-MM-DD/` route.
 2. Prepare the target with the same descendant, symlink, directory-identity, and ownership-marker checks used before file moves.
 3. If DayDrop created the folder, persist the full-date managed-folder record before opening it.
 4. If persistence fails, discard the newly prepared folder when it is still empty and identity-matched.
@@ -37,13 +42,19 @@ Opening the **今日下载** module is a domain action, not only Finder navigati
 ## Rules and invariants
 
 - Calendar-day differences use the current macOS time zone; exactly 14 days old remains recent.
-- A different year, including a future year, uses `YYYY/MM/MMDD/`.
+- A different year, including a future year, uses
+  `Year YYYY/Month YYYY-MM/Day YYYY-MM-DD/`.
+- A same-year date older than 14 natural days uses
+  `Month YYYY-MM/Day YYYY-MM-DD/`; a recent date remains a shallow
+  `Day YYYY-MM-DD/` folder.
 - Only root-level regular files are imported; existing folders are not.
 - A destination collision appends ` (n)` before the last extension and never overwrites.
 - A failed move leaves the source in place.
 - Normal scans never recursively reprocess archived content.
 - Automatic migration touches only identity-bound, ownership-marked managed folders.
-- A pre-existing unmarked destination may receive an individual file, but is never implicitly registered for later whole-folder migration.
+- A pre-existing unmarked destination may receive an individual file, but is
+  never registered from its name alone. The readable-name upgrade may recover
+  it only from unambiguous persisted operation evidence as described above.
 - A migration target must either remain absent as recorded or retain the exact recorded identity and matching date marker.
 - Only empty month/year containers explicitly marked as DayDrop-created are eligible for cleanup.
 - The registry retains the full date even when the visible directory contains only month and day.

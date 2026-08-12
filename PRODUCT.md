@@ -15,8 +15,11 @@ DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads 
 - First-run explanation, Downloads-folder authorization, login-item choice, and an explicit choice before existing files are organized.
 - Event-driven monitoring of top-level files in the selected Downloads folder.
 - Conservative download-completion checks and delayed retry when completion cannot be proven.
-- Date routing to `MMDD/`, `MM/MMDD/`, or `YYYY/MM/MMDD/`.
-- Migration of DayDrop-managed day folders as they cross the 14-day and year boundaries.
+- Readable date routing to `Day YYYY-MM-DD/`, `Month YYYY-MM/Day YYYY-MM-DD/`,
+  or `Year YYYY/Month YYYY-MM/Day YYYY-MM-DD/`.
+- Migration of DayDrop-managed day folders as they cross the 14-day and year
+  boundaries, including evidence-backed recovery and renaming of legacy
+  numeric folders created or used by earlier DayDrop builds.
 - Collision-safe moves, pause/resume, a complete interactive today list, notifications, and the latest 50 local operation records.
 - A Settings destination for login launch, completion notifications, Downloads authorization, and reopening the welcome/setup page.
 

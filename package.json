@@ -1,6 +1,6 @@
 {
   "name": "daydrop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "build:mac": "xcodegen generate && xcodebuild -quiet -project DayDrop.xcodeproj -scheme DayDrop -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath build/DerivedData build",
@@ -8,5 +8,8 @@
     "mac": "npm run build:mac && npm run install:mac",
     "test:mac": "xcodegen generate && xcodebuild -quiet -project DayDrop.xcodeproj -scheme DayDrop -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO test",
     "release:mac": "zsh scripts/release-mac.sh"
+  },
+  "devDependencies": {
+    "wrangler": "^4.121.0"
   }
 }

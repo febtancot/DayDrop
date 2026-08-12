@@ -2,8 +2,8 @@ import Foundation
 
 /// A calendar day stored without a time or time zone.
 ///
-/// DayDrop persists this value as `YYYY-MM-DD` so a visible folder such as
-/// `0811` is never used to infer its year later.
+/// DayDrop persists this value as `YYYY-MM-DD` independently of the visible
+/// `Day`, `Month`, and `Year` folder hierarchy.
 struct ArchiveDay: Hashable, Codable, Sendable {
     let year: Int
     let month: Int

@@ -44,7 +44,7 @@ The menu-bar panel currently provides:
 
 ## Distribution artifact status
 
-`dist/DayDrop-1.0.0.dmg` is the current 2026-08-12 distribution candidate. It contains the latest universal `DayDrop.app` and an `/Applications` installation shortcut. The app and DMG are timestamped with the installed Developer ID identity; Apple notarization returned `Accepted`, the ticket is stapled, and Gatekeeper reports `Notarized Developer ID`. Browser, permission, login-item, notification, visual, minimum-OS, and performance acceptance remain separate release gates.
+`dist/DayDrop-1.0.1.dmg` is the current 2026-08-12 distribution artifact. It contains the latest universal `DayDrop.app` and an `/Applications` installation shortcut. The app and DMG are timestamped with the installed Developer ID identity; Apple notarization returned `Accepted`, the ticket is stapled, and Gatekeeper reports `Notarized Developer ID`. Its SHA-256 is `f26edc3cb9f8ebb54a12471e44354cee7e2a98235eb55e49046597b972b72c32`. Browser, permission, login-item, notification, visual, minimum-OS, and performance acceptance remain separate release gates.
 
 The selected app-icon master is `Design/SelectedIcon/DayDrop-AppIcon-Source-1254.png`. Xcode consumes the complete macOS icon set under `DayDrop/Resources/Assets.xcassets/AppIcon.appiconset/`.
 
@@ -67,12 +67,17 @@ SUBMISSION_ID=<submission-uuid> npm run release:mac
 
 ```text
 Downloads/
-├── 0811/                  # today through 14 natural days old
-├── 05/0512/               # older than 14 days, still in this year
-└── 2025/03/0321/          # a different year
+├── Day 2026-08-11/                                  # today through 14 natural days old
+├── Month 2026-05/Day 2026-05-12/                    # older than 14 days, still in this year
+└── Year 2025/Month 2025-03/Day 2025-03-21/          # a different year
 ```
 
-DayDrop records the full calendar date for every folder it manages. It does not infer a year from a numeric directory name and does not migrate user-created lookalike folders.
+The `Day`, `Month`, and `Year` prefixes make every level distinguishable in
+Finder. DayDrop records the full calendar date for every folder it manages and
+does not migrate user-created lookalike folders based on their names. During
+upgrade, a legacy numeric folder is recovered only when a persisted successful
+DayDrop operation still points to an existing file in that folder and resolves
+to one unambiguous full date.
 
 ## Project references
 

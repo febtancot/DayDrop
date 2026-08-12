@@ -17,14 +17,14 @@ final class ArchivePathRouterTests: XCTestCase {
         calendar = nil
     }
 
-    func testTodayRoutesToShallowMonthDayFolder() throws {
+    func testTodayRoutesToPrefixedFullDateFolder() throws {
         let today = try date(2026, 8, 11, hour: 23)
 
         let route = router.route(for: try date(2026, 8, 11, hour: 1), relativeTo: today)
 
         XCTAssertEqual(route.hierarchy, .recentDay)
-        XCTAssertEqual(route.pathComponents, ["0811"])
-        XCTAssertEqual(route.relativePath, "0811")
+        XCTAssertEqual(route.pathComponents, ["Day 2026-08-11"])
+        XCTAssertEqual(route.relativePath, "Day 2026-08-11")
         XCTAssertEqual(route.sourceDay.encoded, "2026-08-11")
     }
 
@@ -35,7 +35,7 @@ final class ArchivePathRouterTests: XCTestCase {
         )
 
         XCTAssertEqual(route.hierarchy, .recentDay)
-        XCTAssertEqual(route.relativePath, "0728")
+        XCTAssertEqual(route.relativePath, "Day 2026-07-28")
     }
 
     func testFifteenNaturalDaysOldMovesUnderMonth() throws {
@@ -45,8 +45,11 @@ final class ArchivePathRouterTests: XCTestCase {
         )
 
         XCTAssertEqual(route.hierarchy, .monthAndDay)
-        XCTAssertEqual(route.pathComponents, ["07", "0727"])
-        XCTAssertEqual(route.relativePath, "07/0727")
+        XCTAssertEqual(
+            route.pathComponents,
+            ["Month 2026-07", "Day 2026-07-27"]
+        )
+        XCTAssertEqual(route.relativePath, "Month 2026-07/Day 2026-07-27")
     }
 
     func testDifferentPastYearUsesYearMonthDayEvenWhenOnlyOneNaturalDayAway() throws {
@@ -56,7 +59,10 @@ final class ArchivePathRouterTests: XCTestCase {
         )
 
         XCTAssertEqual(route.hierarchy, .yearMonthAndDay)
-        XCTAssertEqual(route.relativePath, "2025/12/1231")
+        XCTAssertEqual(
+            route.relativePath,
+            "Year 2025/Month 2025-12/Day 2025-12-31"
+        )
     }
 
     func testFutureYearUsesItsOwnYearHierarchy() throws {
@@ -66,7 +72,10 @@ final class ArchivePathRouterTests: XCTestCase {
         )
 
         XCTAssertEqual(route.hierarchy, .yearMonthAndDay)
-        XCTAssertEqual(route.relativePath, "2027/01/0102")
+        XCTAssertEqual(
+            route.relativePath,
+            "Year 2027/Month 2027-01/Day 2027-01-02"
+        )
     }
 
     func testNaturalDaysAreNotElapsedTwentyFourHourPeriodsAcrossDST() throws {
@@ -82,7 +91,7 @@ final class ArchivePathRouterTests: XCTestCase {
         )
 
         XCTAssertEqual(route.hierarchy, .recentDay)
-        XCTAssertEqual(route.relativePath, "0308")
+        XCTAssertEqual(route.relativePath, "Day 2026-03-08")
     }
 
     func testSameYearFutureDateUsesAbsoluteNaturalDayDistance() throws {
@@ -92,7 +101,7 @@ final class ArchivePathRouterTests: XCTestCase {
         )
 
         XCTAssertEqual(route.hierarchy, .recentDay)
-        XCTAssertEqual(route.relativePath, "0820")
+        XCTAssertEqual(route.relativePath, "Day 2026-08-20")
     }
 
     func testStoredFullDayCanBeReroutedWhenItAges() throws {
@@ -102,7 +111,7 @@ final class ArchivePathRouterTests: XCTestCase {
         let route = router.route(for: storedDay, relativeTo: fifteenDaysLater)
 
         XCTAssertEqual(route.hierarchy, .monthAndDay)
-        XCTAssertEqual(route.relativePath, "08/0811")
+        XCTAssertEqual(route.relativePath, "Month 2026-08/Day 2026-08-11")
         XCTAssertEqual(route.sourceDay, storedDay)
     }
 

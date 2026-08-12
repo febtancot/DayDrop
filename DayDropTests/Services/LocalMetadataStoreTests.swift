@@ -3,6 +3,21 @@ import XCTest
 @testable import DayDrop
 
 final class LocalMetadataStoreTests: XCTestCase {
+    func testPrefixedManagedFolderPathPersists() async throws {
+        let storageURL = try makeStorageURL()
+        let store = try LocalMetadataStore(storageURL: storageURL)
+        let folder = ManagedDayFolder(
+            dateIdentifier: "2025-03-21",
+            relativePath: "Year 2025/Month 2025-03/Day 2025-03-21"
+        )
+
+        try await store.upsertManagedFolder(folder)
+
+        let reopenedStore = try LocalMetadataStore(storageURL: storageURL)
+        let reopenedFolders = await reopenedStore.loadManagedFolders()
+        XCTAssertEqual(reopenedFolders, [folder])
+    }
+
     func testManagedFoldersPersistUpsertAndRemoveByStableDateIdentity() async throws {
         let storageURL = try makeStorageURL()
         let store = try LocalMetadataStore(storageURL: storageURL)

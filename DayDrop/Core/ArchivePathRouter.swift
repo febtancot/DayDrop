@@ -36,14 +36,17 @@ struct ArchivePathRouter {
     }
 
     func route(for sourceDay: ArchiveDay, relativeTo today: ArchiveDay) -> ArchiveRoute {
+        let dayFolder = "Day \(sourceDay.encoded)"
+        let monthFolder = "Month \(sourceDay.yearComponent)-\(sourceDay.monthComponent)"
+
         if sourceDay.year != today.year {
             return ArchiveRoute(
                 sourceDay: sourceDay,
                 hierarchy: .yearMonthAndDay,
                 pathComponents: [
-                    sourceDay.yearComponent,
-                    sourceDay.monthComponent,
-                    sourceDay.monthDayComponent
+                    "Year \(sourceDay.yearComponent)",
+                    monthFolder,
+                    dayFolder
                 ]
             )
         }
@@ -52,14 +55,14 @@ struct ArchivePathRouter {
             return ArchiveRoute(
                 sourceDay: sourceDay,
                 hierarchy: .recentDay,
-                pathComponents: [sourceDay.monthDayComponent]
+                pathComponents: [dayFolder]
             )
         }
 
         return ArchiveRoute(
             sourceDay: sourceDay,
             hierarchy: .monthAndDay,
-            pathComponents: [sourceDay.monthComponent, sourceDay.monthDayComponent]
+            pathComponents: [monthFolder, dayFolder]
         )
     }
 

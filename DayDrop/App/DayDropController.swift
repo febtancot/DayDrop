@@ -508,10 +508,16 @@ final class DayDropController: ObservableObject {
         }
 
         let today = ArchiveDay(date: Date())
-        let todayFolder = downloadsURL.appendingPathComponent(
-            today.monthDayComponent,
-            isDirectory: true
-        )
+        let todayRoute = ArchivePathRouter().route(for: today, relativeTo: today)
+        guard let todayFolder = managedFolderURL(
+            relativePath: todayRoute.relativePath,
+            rootURL: downloadsURL
+        ) else {
+            todayFiles = []
+            stopTodayMonitor()
+            statusMessage = "今日归档路径无效。"
+            return
+        }
         if (try? todayFolder.resourceValues(forKeys: [.isSymbolicLinkKey]))?.isSymbolicLink == true {
             todayFiles = []
             stopTodayMonitor()
@@ -1040,7 +1046,43 @@ final class DayDropController: ObservableObject {
             migrationInProgress = false
         }
 
-        let folders = await metadataStore.loadManagedFolders()
+        var folders = await metadataStore.loadManagedFolders()
+        let legacyCandidates = LegacyArchiveFolderRecovery(fileManager: fileManager)
+            .candidates(
+                in: downloadsURL,
+                operationRecords: await metadataStore.loadOperationRecords(),
+                existingFolders: folders
+            )
+        for candidate in legacyCandidates {
+            guard let sourceURL = managedFolderURL(
+                relativePath: candidate.relativePath,
+                rootURL: downloadsURL
+            ),
+                  FileSystemIdentity.directoryIdentifier(at: sourceURL)
+                    == candidate.directoryIdentity
+            else {
+                continue
+            }
+
+            do {
+                try DayDropDirectoryOwnershipMarker.mark(
+                    sourceURL,
+                    dateIdentifier: candidate.dateIdentifier
+                )
+                let recoveredFolder = ManagedDayFolder(
+                    dateIdentifier: candidate.dateIdentifier,
+                    relativePath: candidate.relativePath,
+                    directoryIdentity: candidate.directoryIdentity
+                )
+                try await metadataStore.upsertManagedFolder(recoveredFolder)
+                folders.append(recoveredFolder)
+            } catch {
+                pauseAfterBlockingFailure(
+                    "无法升级旧版日期目录：\(error.localizedDescription)"
+                )
+                return
+            }
+        }
         let today = ArchiveDay(date: Date())
         var records: [OperationRecord] = []
         var succeededCount = 0
@@ -1278,8 +1320,8 @@ final class DayDropController: ObservableObject {
                     break migrationLoop
                 } else {
                     // With no pending transaction, a missing identity-bound
-                    // source means the user removed it. Never adopt a numeric
-                    // lookalike destination.
+                    // source means the user removed it. Never adopt a
+                    // similarly named destination.
                     do {
                         try await metadataStore.removeManagedFolder(id: folder.id)
                     } catch {

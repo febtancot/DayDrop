@@ -3,12 +3,14 @@ xcuserdata/
 DerivedData/
 .DS_Store
 build/
+node_modules/
 
 # Xcode workspace user data
 *.xcworkspace/xcuserdata/
 
 # Release artifacts
 dist/
+Product_Site/downloads/*.dmg
 
 # Local generated reports/notes
 output/

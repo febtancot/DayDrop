@@ -73,7 +73,7 @@ final class ArchiveEngineTests: XCTestCase {
         XCTAssertEqual(try String(contentsOf: sourceURL), "source")
     }
 
-    func testMigrationMovesWholeRecentDayFolderIntoMonth() async throws {
+    func testMigrationRenamesLegacyDayFolderIntoPrefixedMonthHierarchy() async throws {
         let sourceFolder = temporaryRoot.appendingPathComponent("0727", isDirectory: true)
         try FileManager.default.createDirectory(at: sourceFolder, withIntermediateDirectories: true)
         try DayDropDirectoryOwnershipMarker.mark(
@@ -90,7 +90,7 @@ final class ArchiveEngineTests: XCTestCase {
                 directoryIdentity: try XCTUnwrap(
                     FileSystemIdentity.directoryIdentifier(at: sourceFolder)
                 ),
-                pendingRelativePath: "07/0727",
+                pendingRelativePath: "Month 2026-07/Day 2026-07-27",
                 pendingDestinationExpectedAbsent: true
             ),
             relativeTo: ArchiveDay(year: 2026, month: 8, day: 11)!,
@@ -98,14 +98,22 @@ final class ArchiveEngineTests: XCTestCase {
         )
 
         XCTAssertEqual(result.state, .moved)
-        XCTAssertEqual(result.expectedRelativePath, "07/0727")
+        XCTAssertEqual(
+            result.expectedRelativePath,
+            "Month 2026-07/Day 2026-07-27"
+        )
         XCTAssertFalse(FileManager.default.fileExists(atPath: sourceFolder.path))
         XCTAssertTrue(FileManager.default.fileExists(
-            atPath: temporaryRoot.appendingPathComponent("07/0727/archive.zip").path
+            atPath: temporaryRoot.appendingPathComponent(
+                "Month 2026-07/Day 2026-07-27/archive.zip"
+            ).path
         ))
         XCTAssertEqual(
             DayDropDirectoryOwnershipMarker.managedDateIdentifier(
-                at: temporaryRoot.appendingPathComponent("07/0727", isDirectory: true)
+                at: temporaryRoot.appendingPathComponent(
+                    "Month 2026-07/Day 2026-07-27",
+                    isDirectory: true
+                )
             ),
             "2026-07-27"
         )
@@ -113,7 +121,10 @@ final class ArchiveEngineTests: XCTestCase {
 
     func testMigrationMergesDestinationWithoutOverwritingCollision() async throws {
         let sourceFolder = temporaryRoot.appendingPathComponent("0727", isDirectory: true)
-        let destinationFolder = temporaryRoot.appendingPathComponent("07/0727", isDirectory: true)
+        let destinationFolder = temporaryRoot.appendingPathComponent(
+            "Month 2026-07/Day 2026-07-27",
+            isDirectory: true
+        )
         try FileManager.default.createDirectory(at: sourceFolder, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: destinationFolder, withIntermediateDirectories: true)
         try Data("new".utf8).write(to: sourceFolder.appendingPathComponent("report.pdf"))
@@ -127,7 +138,7 @@ final class ArchiveEngineTests: XCTestCase {
                 directoryIdentity: try XCTUnwrap(
                     FileSystemIdentity.directoryIdentifier(at: sourceFolder)
                 ),
-                pendingRelativePath: "07/0727",
+                pendingRelativePath: "Month 2026-07/Day 2026-07-27",
                 pendingDestinationIdentity: try XCTUnwrap(
                     FileSystemIdentity.directoryIdentifier(at: destinationFolder)
                 )
@@ -164,7 +175,7 @@ final class ArchiveEngineTests: XCTestCase {
                 directoryIdentity: try XCTUnwrap(
                     FileSystemIdentity.directoryIdentifier(at: sourceFolder)
                 ),
-                pendingRelativePath: "2025/07/0727",
+                pendingRelativePath: "Year 2025/Month 2025-07/Day 2025-07-27",
                 pendingDestinationExpectedAbsent: true
             ),
             relativeTo: ArchiveDay(year: 2026, month: 1, day: 1)!,
@@ -172,9 +183,14 @@ final class ArchiveEngineTests: XCTestCase {
         )
 
         XCTAssertEqual(result.state, .moved)
-        XCTAssertEqual(result.expectedRelativePath, "2025/07/0727")
+        XCTAssertEqual(
+            result.expectedRelativePath,
+            "Year 2025/Month 2025-07/Day 2025-07-27"
+        )
         XCTAssertTrue(FileManager.default.fileExists(
-            atPath: temporaryRoot.appendingPathComponent("2025/07/0727/archive.zip").path
+            atPath: temporaryRoot.appendingPathComponent(
+                "Year 2025/Month 2025-07/Day 2025-07-27/archive.zip"
+            ).path
         ))
         XCTAssertFalse(FileManager.default.fileExists(
             atPath: temporaryRoot.appendingPathComponent("07").path
@@ -195,7 +211,7 @@ final class ArchiveEngineTests: XCTestCase {
                 dateIdentifier: "2025-07-27",
                 relativePath: "07/0727",
                 directoryIdentity: sourceIdentity,
-                pendingRelativePath: "2025/07/0727",
+                pendingRelativePath: "Year 2025/Month 2025-07/Day 2025-07-27",
                 pendingDestinationExpectedAbsent: true
             ),
             relativeTo: ArchiveDay(year: 2026, month: 1, day: 1)!,
@@ -229,7 +245,7 @@ final class ArchiveEngineTests: XCTestCase {
         try FileManager.default.createDirectory(at: outsideFolder, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: outsideFolder) }
         try FileManager.default.createSymbolicLink(
-            at: temporaryRoot.appendingPathComponent("0811"),
+            at: temporaryRoot.appendingPathComponent("Day 2026-08-11"),
             withDestinationURL: outsideFolder
         )
         let sourceURL = temporaryRoot.appendingPathComponent("stay.pdf")
@@ -451,7 +467,10 @@ final class ArchiveEngineTests: XCTestCase {
     }
 
     func testPreparingPreexistingUserDirectoryDoesNotClaimOwnership() async throws {
-        let userFolder = temporaryRoot.appendingPathComponent("0812", isDirectory: true)
+        let userFolder = temporaryRoot.appendingPathComponent(
+            "Day 2026-08-12",
+            isDirectory: true
+        )
         try FileManager.default.createDirectory(at: userFolder, withIntermediateDirectories: true)
         let engine = ArchiveEngine(calendar: fixedCalendar())
         let day = ArchiveDay(year: 2026, month: 8, day: 12)!

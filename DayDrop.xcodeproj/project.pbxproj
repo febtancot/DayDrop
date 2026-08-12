@@ -8,9 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		00525B0FDA3EB89BCA843445 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9192C6D2A4FB481C6EA6C6B5 /* OnboardingView.swift */; };
+		011C8A5676930A7AED51D09F /* LegacyArchiveFolderRecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C0B860972271C556168AAAC /* LegacyArchiveFolderRecoveryTests.swift */; };
 		01967B35BA8BFA9B0496FEA0 /* ArchiveTargetOwnershipPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7F5BE79DBDA4942F051D6E /* ArchiveTargetOwnershipPolicyTests.swift */; };
 		0914228DCF619F8517B5CEA0 /* ArchiveDayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29A40F58B6AAF696797D5EE2 /* ArchiveDayTests.swift */; };
 		179A6A4F3B84E21310CBC206 /* ArchiveEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282B8CB471EE2B4DD5959590 /* ArchiveEngine.swift */; };
+		195482BA379ED90A9793F2B4 /* LegacyArchiveFolderRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D021327F2247305881375B59 /* LegacyArchiveFolderRecovery.swift */; };
 		215D36E6F1E43C8695359B51 /* DayDropCompactToggleStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D444756A6A8B747A155784E /* DayDropCompactToggleStyle.swift */; };
 		2AE380B070F2511458A03A78 /* ArchiveDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 531E9AC14E97B8EC4624A474 /* ArchiveDay.swift */; };
 		2CB2F0C728168B0E348AA68F /* ExistingFileDateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1996BEEEB293E398D908C932 /* ExistingFileDateResolver.swift */; };
@@ -83,10 +85,12 @@
 		9653569ED6FB6B7F2371F314 /* DirectoryEventMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryEventMonitor.swift; sourceTree = "<group>"; };
 		97D819243CE94B5B41FD6B49 /* ArchiveEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveEngineTests.swift; sourceTree = "<group>"; };
 		999DB47D4B664FF26C6F03BC /* LocalMetadataStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMetadataStoreTests.swift; sourceTree = "<group>"; };
+		9C0B860972271C556168AAAC /* LegacyArchiveFolderRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyArchiveFolderRecoveryTests.swift; sourceTree = "<group>"; };
 		9C8C6068DCF88B066665F080 /* DownloadCandidatePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadCandidatePolicy.swift; sourceTree = "<group>"; };
 		A18000441BF66A1CC61632C6 /* RecentActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentActivityView.swift; sourceTree = "<group>"; };
 		AB77B2A2A64A84DF66FD2DEF /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		C63474F8E496204470EE91AB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		D021327F2247305881375B59 /* LegacyArchiveFolderRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyArchiveFolderRecovery.swift; sourceTree = "<group>"; };
 		E12E62542054D55F0FD94AD1 /* DirectoryEventMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryEventMonitorTests.swift; sourceTree = "<group>"; };
 		F6C6D33574C2C99F26F325C5 /* DownloadsBookmarkStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsBookmarkStore.swift; sourceTree = "<group>"; };
 		FDDA11243B45BDB99345C28E /* DayDropController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropController.swift; sourceTree = "<group>"; };
@@ -121,6 +125,7 @@
 				9C8C6068DCF88B066665F080 /* DownloadCandidatePolicy.swift */,
 				1996BEEEB293E398D908C932 /* ExistingFileDateResolver.swift */,
 				16BF5DB6376FAA5119A11F90 /* FileSizeStabilityTracker.swift */,
+				D021327F2247305881375B59 /* LegacyArchiveFolderRecovery.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -175,6 +180,7 @@
 				8CE292D61DDFAEFD2D636E07 /* DownloadCandidatePolicyTests.swift */,
 				92D97D82AE48E6D582F6AF7B /* ExistingFileDateResolverTests.swift */,
 				862B022164A5E72F870139F0 /* FileSizeStabilityTrackerTests.swift */,
+				9C0B860972271C556168AAAC /* LegacyArchiveFolderRecoveryTests.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -338,6 +344,7 @@
 				2CB2F0C728168B0E348AA68F /* ExistingFileDateResolver.swift in Sources */,
 				A89681319E0BFBDE40F5C177 /* FileCandidateScanner.swift in Sources */,
 				8BE7D4D01CCE23947D2D335C /* FileSizeStabilityTracker.swift in Sources */,
+				195482BA379ED90A9793F2B4 /* LegacyArchiveFolderRecovery.swift in Sources */,
 				C58802E7E6532C8C931CE451 /* LocalMetadataStore.swift in Sources */,
 				ABAF70AA1D522400480FFEB0 /* LoginItemService.swift in Sources */,
 				93073EF348EA67C1737223A7 /* MenuBarView.swift in Sources */,
@@ -362,6 +369,7 @@
 				4ED851D3F3F5FE873C405AE2 /* ExistingFileDateResolverTests.swift in Sources */,
 				3746FEECF900CC21A2D18393 /* FileCandidateScannerTests.swift in Sources */,
 				F5C54FF0E1E7192CC0DAE24A /* FileSizeStabilityTrackerTests.swift in Sources */,
+				011C8A5676930A7AED51D09F /* LegacyArchiveFolderRecoveryTests.swift in Sources */,
 				494B737F35FCC7619A58CA78 /* LocalMetadataStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -429,7 +437,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -448,7 +456,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -512,7 +520,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -525,7 +533,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

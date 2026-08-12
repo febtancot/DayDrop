@@ -6,10 +6,10 @@ This matrix separates deterministic automated evidence from signed-app and real-
 | --- | --- | --- | --- |
 | AC-01 | Safari, Chrome, Edge, and Firefox completed downloads are organized | Signed app, four real-browser downloads | Manual pending |
 | AC-02 | Temporary/incomplete downloads are not moved | Suffix, stability, advisory-lock tests; live partial download still required | Automated pass; manual pending |
-| AC-03 | 0–14 natural days route to `MMDD/` | Boundary and DST unit tests | Automated pass |
-| AC-04 | This-year files older than 14 days route to `MM/MMDD/` | Day-15 unit and integration tests | Automated pass |
-| AC-05 | Other-year files route to `YYYY/MM/MMDD/` | Past/future-year unit tests | Automated pass |
-| AC-06 | Managed folders migrate after 14 days and across years | Whole-folder and merge integration tests | Automated pass |
+| AC-03 | 0–14 natural days route to `Day YYYY-MM-DD/` | Boundary and DST unit tests | Automated pass |
+| AC-04 | This-year files older than 14 days route to `Month YYYY-MM/Day YYYY-MM-DD/` | Day-15 unit and integration tests | Automated pass |
+| AC-05 | Other-year files route to `Year YYYY/Month YYYY-MM/Day YYYY-MM-DD/` | Past/future-year unit tests | Automated pass |
+| AC-06 | Managed and evidence-backed legacy folders migrate after layout, 14-day, and year changes | Whole-folder, legacy recovery, and merge integration tests | Automated pass |
 | AC-07 | Existing files use creation date, then modification date | Resolver unit tests | Automated pass |
 | AC-08 | Existing destinations are reused | Temporary-directory move/merge tests | Automated pass |
 | AC-09 | Same-name files are preserved with a sequence suffix | Unit and integration tests | Automated pass |
@@ -22,7 +22,11 @@ This matrix separates deterministic automated evidence from signed-app and real-
 
 ## Current development evidence — 2026-08-12
 
-- The current source passes 70 XCTest cases with 0 failures on arm64 macOS.
+- The current source passes 76 XCTest cases with 0 failures on arm64 macOS.
+- Routing and migration tests cover the readable `Day`, `Month`, and `Year`
+  prefixes, full ISO-style dates, legacy numeric managed-folder migration, and
+  persistence of prefixed paths containing spaces. Legacy recovery tests also
+  reject missing, failed, ambiguous, or already-managed operation evidence.
 - `npm run mac` successfully builds, terminates the prior process, moves the previous installed app into a recoverable Trash backup, installs `/Applications/DayDrop.app`, verifies its ad-hoc signature, and launches the installed path.
 - Source inspection confirms that the today-module action uses archive target preparation, ownership evaluation, managed-folder persistence, rollback of an empty newly created folder on persistence failure, today-monitor refresh, and Finder open. A dedicated Finder/UI automation test has not yet been added.
 - Main-panel and Settings toggles share the same runtime-backed controller methods and compact visual style.
@@ -31,11 +35,11 @@ This matrix separates deterministic automated evidence from signed-app and real-
 
 ## Current release-package evidence — 2026-08-12
 
-- 70 XCTest cases passed with strict concurrency checking and source warnings treated as errors.
+- 76 XCTest cases passed with strict concurrency checking and source warnings treated as errors.
 - `xcodebuild analyze` passed.
 - Release app built as one universal Mach-O containing `arm64` and `x86_64`.
-- Ad-hoc signature verification passed with App Sandbox, app-scoped bookmarks, and user-selected read/write entitlements.
-- The current-source `DayDrop-1.0.0.dmg` was mounted successfully; its Developer ID signature, hardened runtime, three sandbox/bookmark entitlements, 10 AppIcon renditions, `/Applications` shortcut, and `arm64`/`x86_64` application were verified.
-- Apple notarization submission `b24c5365-e6be-427c-8b63-80f7d107a0e5` returned `Accepted` with zero reported issues. Stapler validation passed and Gatekeeper reports `Notarized Developer ID` for the DMG and contained app.
+- The current-source `DayDrop-1.0.1.dmg` was mounted successfully; its Developer ID signature, hardened runtime, exact sandbox/bookmark entitlements, AppIcon, `/Applications` shortcut, and `arm64`/`x86_64` application were verified.
+- Apple notarization submission `8157360c-08c8-4aa9-b433-d6eea9a366fc` returned `Accepted`. Stapler validation passed and Gatekeeper reports `Notarized Developer ID` for the DMG and contained app.
+- Final SHA-256: `f26edc3cb9f8ebb54a12471e44354cee7e2a98235eb55e49046597b972b72c32`.
 - Migration recovery tests cover persisted intent, exact source/destination identity, destination replacement, partial-merge resume, cancellation, symlink handling, and preservation of user-created parent folders.
 - No systematic visual acceptance pass is claimed. User screenshots drove targeted fixes, but the complete state matrix still requires inspection.

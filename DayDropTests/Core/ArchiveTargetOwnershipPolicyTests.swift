@@ -26,7 +26,7 @@ final class ArchiveTargetOwnershipPolicyTests: XCTestCase {
 
     func testCreatedFolderCannotOverwriteExistingFolderForSameDate() {
         let preparation = makePreparation(
-            relativePath: "08/0811",
+            relativePath: "Month 2026-08/Day 2026-08-11",
             identity: "new-target",
             ownershipDateIdentifier: day.encoded,
             wasCreated: true
@@ -35,7 +35,7 @@ final class ArchiveTargetOwnershipPolicyTests: XCTestCase {
             dateIdentifier: day.encoded,
             relativePath: "0811",
             directoryIdentity: "old-target",
-            pendingRelativePath: "08/0811",
+            pendingRelativePath: "Month 2026-08/Day 2026-08-11",
             pendingDestinationExpectedAbsent: true
         )
 
@@ -129,7 +129,7 @@ final class ArchiveTargetOwnershipPolicyTests: XCTestCase {
     }
 
     private func makePreparation(
-        relativePath: String = "0811",
+        relativePath: String = "Day 2026-08-11",
         identity: String = "device:inode",
         ownershipDateIdentifier: String?,
         wasCreated: Bool = false
