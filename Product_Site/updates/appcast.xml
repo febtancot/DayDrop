@@ -7,23 +7,23 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
         <title>DayDrop</title>
         <item>
             <title>1.1.1</title>
-            <pubDate>Fri, 14 Aug 2026 10:09:39 +0800</pubDate>
+            <pubDate>Fri, 14 Aug 2026 11:24:59 +0800</pubDate>
             <link>https://daydrop.liveby.app/</link>
-            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#download</sparkle:fullReleaseNotesLink>
-            <sparkle:version>6</sparkle:version>
+            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#changelog</sparkle:fullReleaseNotesLink>
+            <sparkle:version>7</sparkle:version>
             <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://daydrop.liveby.app/downloads/DayDrop-1.1.1.dmg" length="4996297" type="application/octet-stream" sparkle:edSignature="roRFTYZhb3Vy8NzM4i5NW69MJfkVTY3gYO4FiuEioMmB52bWVXzJCZfLLorPokS1p1KgizuCbcqf+blIN+KpCw=="/>
+            <enclosure url="https://daydrop.liveby.app/downloads/DayDrop-1.1.1.dmg" length="5005477" type="application/octet-stream" sparkle:edSignature="Q8WHo3mo16j0RmeevT3fs4+hd9kaYOP7XrNbgYkYWbPe28RjO5lFcbesmsKO5zD+xyL0fOHZ1EYsHASloLdVBA=="/>
             <sparkle:deltas>
-                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop6-5.delta" sparkle:deltaFrom="5" length="417110" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="JJ5ED98IWe87nZz57i667gaQ142HoBdJVwaw6TBB/OEhv5UYouAxxoT+rBeK922OmW6tPxHgowZ0ghonUQUJBw=="/>
-                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop6-4.delta" sparkle:deltaFrom="4" length="796646" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="8YRlth3WjzL9yJvyglPojqC8W1oVLRvUG5KGJrsQLsv9gIJTTpyQyyCHbmjmuLaARRcpMIB3zn3MTCpqkZ8OCA=="/>
+                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop7-5.delta" sparkle:deltaFrom="5" length="440402" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="5QHayuFs960v1R0+AsgLTT9/i+G3GUOk436z4bijhztZvrSwhmao46Z+y/tq66MrKtlteZOYcyYEVj8hZr8wBA=="/>
+                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop7-4.delta" sparkle:deltaFrom="4" length="806586" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="TYHxeblNMCCTm3XoyBFjEKXNvKqpFW7myeo87rOMZczZz8OXfB8MPKp6/4ItIM9gOeDVGf248HN1Mz8YTCpxCw=="/>
             </sparkle:deltas>
         </item>
         <item>
             <title>1.1.0</title>
             <pubDate>Thu, 13 Aug 2026 18:43:32 +0800</pubDate>
             <link>https://daydrop.liveby.app/</link>
-            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#download</sparkle:fullReleaseNotesLink>
+            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#changelog</sparkle:fullReleaseNotesLink>
             <sparkle:version>5</sparkle:version>
             <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
@@ -33,22 +33,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
                 <enclosure url="https://daydrop.liveby.app/downloads/DayDrop5-3.delta" sparkle:deltaFrom="3" length="704506" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="a1M39VCruRV7Kbe1DZOMlcLCvf+jyINnOCkGUnU2zwji1WumpoCs0MhIOt9Nv7tjqdTt+qRiPsGurEjB59y/BQ=="/>
             </sparkle:deltas>
         </item>
-        <item>
-            <title>1.0.3</title>
-            <pubDate>Wed, 12 Aug 2026 21:11:04 +0800</pubDate>
-            <link>https://daydrop.liveby.app/</link>
-            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#download</sparkle:fullReleaseNotesLink>
-            <sparkle:version>4</sparkle:version>
-            <sparkle:shortVersionString>1.0.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://daydrop.liveby.app/downloads/DayDrop-1.0.3.dmg" length="4523073" type="application/octet-stream" sparkle:edSignature="1HiPv/03085kfwfY2mLc5WA7dbR2CjsmTcQ+dx6LHmabVjxswGnF6Jo26ySulgKDH7tH62i8eSTSvY+ndvPFCw=="/>
-            <sparkle:deltas>
-                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop4-3.delta" sparkle:deltaFrom="3" length="130466" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="Txk4uT053vVdS76O0XGTSnmXdwmV43vfIERq51Vf/7IioQHK51vSIVu4GqHtXsoT84KTAlIfv5sY3uxRd8MIAg=="/>
-            </sparkle:deltas>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: Qp+lNRvB6n3xrYvISzWYDE2j7rVLHQ0SioDU+boYt5RFW6VRkkOR3YVZ0mHPDi5wdRtCXLm35CFFlm3x3DPPBQ==
-length: 4687
+edSignature: S3IA6g95mWYhZVHd+rhNpdODM/+tqAoaJrioC5DfCCFg9gojTt0QkMho/yeUrb3xHb8UJ56E4vjsJfU/wKS5Bw==
+length: 3519
 -->

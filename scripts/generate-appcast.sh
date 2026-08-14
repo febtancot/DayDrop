@@ -17,6 +17,11 @@ updates_dir="$project_dir/Product_Site/updates"
 appcast="$updates_dir/appcast.xml"
 sparkle_account=com.liuyuhang.DayDrop
 
+command -v perl >/dev/null || {
+    print -u2 "错误：缺少命令 perl。"
+    exit 1
+}
+
 "$project_dir/scripts/verify-version.sh" \
     --version "$project_version" \
     --build "$project_build"
@@ -56,12 +61,44 @@ print "$archive_sha  ${dmg:t}" > "$downloads_dir/${dmg:t}.sha256"
     --account "$sparkle_account" \
     --download-url-prefix "https://daydrop.liveby.app/downloads/" \
     --release-notes-url-prefix "https://daydrop.liveby.app/downloads/" \
-    --full-release-notes-url "https://daydrop.liveby.app/#download" \
+    --full-release-notes-url "https://daydrop.liveby.app/#changelog" \
     --link "https://daydrop.liveby.app/" \
     --maximum-versions 3 \
     --maximum-deltas 2 \
     -o "$appcast" \
     "$downloads_dir"
+
+# Rebuilding an existing marketing version intentionally keeps the public DMG
+# filename stable. Sparkle may retain the previous build as another item with
+# that same URL, even though the file now contains the new build. Remove those
+# stale duplicate-URL items and keep the newest (first) item only.
+current_archive_url="https://daydrop.liveby.app/downloads/${dmg:t}"
+APPCAST_CURRENT_URL="$current_archive_url" perl -0pi -e '
+    my $url = quotemeta($ENV{APPCAST_CURRENT_URL});
+    my $seen = 0;
+    s{(\s*<item>.*?</item>)}{
+        my $item = $1;
+        if ($item =~ m{<enclosure\s+url="$url"}) {
+            ++$seen == 1 ? $item : "";
+        } else {
+            $item;
+        }
+    }gse;
+' "$appcast"
+
+current_archive_item_count=$(grep -F -c \
+    "<enclosure url=\"$current_archive_url\"" "$appcast")
+[[ "$current_archive_item_count" == "1" ]] || {
+    print -u2 "错误：Appcast 必须且只能包含一个当前下载地址条目；实际为 $current_archive_item_count。"
+    exit 1
+}
+
+# generate_appcast preserves this field on existing items. Normalize every
+# retained item so Sparkle's "Version History" action always opens changelog.
+perl -0pi -e '
+    s{<sparkle:fullReleaseNotesLink>.*?</sparkle:fullReleaseNotesLink>}
+     {<sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#changelog</sparkle:fullReleaseNotesLink>}g;
+' "$appcast"
 
 # Archives created before DayDrop embedded Sparkle do not advertise a public
 # update key, so generate_appcast cannot infer that they should be signed. Sign

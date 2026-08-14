@@ -969,7 +969,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
     <section id="changelog">
       <div class="sec-label">Release Notes</div>
       <h2 class="sec-title">更新日志<a class="anchor" href="#changelog">#</a></h2>
-      <p class="sec-sub">1.1.1 修复系统重启后受管目录可能被误判为不安全的问题，让自动整理可靠恢复，同时保持原有安全边界。</p>
+      <p class="sec-sub">1.1.1 修复系统重启后的目录识别与自动更新提醒问题，让自动整理和版本升级都能可靠恢复。</p>
 
       <div class="release-stack">
         <article class="release-card latest rv">
@@ -979,7 +979,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
             <span class="release-current">当前版本</span>
             <a class="btn btn-primary btn-sm release-download" href="/downloads/DayDrop-1.1.1.dmg" download>下载 1.1.1 <span class="arr">→</span></a>
           </div>
-          <p class="release-summary">改用跨重启稳定的卷标识与文件标识识别受管目录，并安全兼容 1.1.0 已保存的目录记录。</p>
+          <p class="release-summary">改用跨重启稳定的目录身份，缩短文件静默窗口，并修复后台发现新版本后不弹窗、设置页不显示的问题。</p>
           <div class="release-grid">
             <div class="release-point">
               <span class="mark">Restart</span>
@@ -997,9 +997,9 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
               <p>只有路径、inode 与 DayDrop 所有权标记同时吻合时，才会把旧身份升级为新格式；无法确认时仍会暂停并提示处理。</p>
             </div>
             <div class="release-point">
-              <span class="mark">Index</span>
-              <h3>避免索引产生虚假变更</h3>
-              <p>索引会在升级期间兼容新旧身份，避免因设备编号变化产生大批错误的“移除后重新发现”记录。</p>
+              <span class="mark">Update</span>
+              <h3>可靠显示更新提醒</h3>
+              <p>后台发现新版本后由 Sparkle 正常弹出更新窗口；设置页会持续显示待更新版本，关闭窗口或重启应用后也不会丢失。</p>
             </div>
           </div>
           <div class="release-boundary"><strong>安全边界不变：</strong>自动整理仍只处理「下载」顶层普通文件；递归索引只读取元数据，不读取内容，也不会移动子目录中的文件。</div>

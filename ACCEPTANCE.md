@@ -73,12 +73,12 @@ This matrix separates deterministic automated evidence from signed-app and real-
 
 ## Current release-package evidence — 2026-08-14
 
-- 106 XCTest cases passed with strict concurrency checking and source warnings treated as errors.
+- 109 XCTest cases passed with strict concurrency checking and source warnings treated as errors.
 - `xcodebuild analyze` passed.
 - Release app built as one universal Mach-O containing `arm64` and `x86_64`.
 - The current-source `DayDrop-1.1.1.dmg` was mounted successfully; its Developer ID signature, hardened runtime, sandbox/bookmark/update entitlements, Sparkle helpers, AppIcon, `/Applications` shortcut, and `arm64`/`x86_64` application were verified.
-- Apple notarization submission `dcb34325-26b6-4269-a52c-eeab18884b8e` returned `Accepted` with no reported issues. Stapler validation passed and Gatekeeper reports `Notarized Developer ID` for both the DMG and mounted app.
-- Final SHA-256: `0c587e4af72dd2a2c3c69a4d71901a4277de15aa89e6f72da796ae6809cf7fa4`.
-- The signed Appcast advertises DayDrop 1.1.1 build 6 at `https://daydrop.liveby.app/downloads/DayDrop-1.1.1.dmg`. Cloudflare Pages deployment `https://52746232.liveby-web.pages.dev` and the production custom domain were both verified by downloading the homepage, Appcast, and complete DMG and comparing version, build, URL, and SHA-256.
+- Apple notarization submission `72f0a702-33e4-4e54-b87c-09f9a9bd35d0` returned `Accepted` with no reported issues. Stapler validation passed and Gatekeeper reports `Notarized Developer ID` for both the DMG and mounted app.
+- Final SHA-256: `4a22cdb389afe3f22d3e9d3954f43cea16ae0a32dedaa5bcaba9a9f63ffb42d4`.
+- The signed Appcast advertises DayDrop 1.1.1 build 7 at `https://daydrop.liveby.app/downloads/DayDrop-1.1.1.dmg`. Cloudflare Pages deployment `https://d69a08b8.liveby-web.pages.dev` and the production custom domain were both verified by downloading the homepage, Appcast, and complete DMG and comparing version, build, URL, and SHA-256.
 - Migration recovery tests cover persisted intent, exact source/destination identity, destination replacement, partial-merge resume, cancellation, symlink handling, and preservation of user-created parent folders.
 - No systematic visual acceptance pass is claimed. User screenshots drove targeted fixes, but the complete state matrix still requires inspection.

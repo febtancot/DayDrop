@@ -2,7 +2,7 @@
 
 ## Current status
 
-The PRD v1.1 MVP plus recursive read-only Downloads indexing and restart-stable managed-folder identity are implemented and shipped as DayDrop 1.1.1 (build 6). The release pipeline passed 106 tests, strict warnings-as-errors compilation, static analysis, universal build, Developer ID signing, Apple notarization, stapling, Gatekeeper checks, signed Appcast generation, and remote website/package consistency verification. Current unreleased source shortens the finalization quiet window from five seconds to two seconds; the published 1.1.1 artifact still uses five seconds. Signed real-browser, permission-denial, login-item, notification, updater installation, index UI, broader visual, minimum-OS, and large-tree performance acceptance remain open.
+The PRD v1.1 MVP plus recursive read-only Downloads indexing, restart-stable managed-folder identity, a two-second finalization quiet window, and reliable persistent update reminders are implemented and shipped as DayDrop 1.1.1 (build 7). The release pipeline passed 109 tests, strict warnings-as-errors compilation, static analysis, universal build, Developer ID signing, Apple notarization, stapling, Gatekeeper checks, signed Appcast generation, and remote website/package consistency verification. Signed real-browser, permission-denial, login-item, notification, updater installation, index UI, broader visual, minimum-OS, and large-tree performance acceptance remain open.
 
 - Native macOS 13+ menu-bar app and first-run onboarding.
 - Security-scoped Downloads-folder authorization with no direct-path fallback.
@@ -28,7 +28,7 @@ Complete visual and signed real-Mac acceptance against the notarized distributio
 1. Native project and tested date/path core — complete.
 2. Authorization, monitoring, move/migration engine, history, and notifications — implemented.
 3. Menu-bar and first-run UI — implemented and iterated from user screenshots; systematic visual/VoiceOver/minimum-OS acceptance remains pending.
-4. Automated verification — current source passes 106 tests, strict concurrency/warnings-as-errors compilation, Release static analysis, and an `arm64` + `x86_64` universal Release build. The shipped 1.1.1 artifact includes the 2026-08-14 finalization-monitor and restart-stable managed-folder identity changes.
+4. Automated verification — current source passes 109 tests, strict concurrency/warnings-as-errors compilation, Release static analysis, and an `arm64` + `x86_64` universal Release build. The shipped 1.1.1 artifact includes the 2026-08-14 finalization-monitor, restart-stable managed-folder identity, and updater-reminder changes.
 5. Development installation — `npm run mac` builds, safely replaces `/Applications/DayDrop.app`, verifies, and launches the arm64 Debug app; complete.
 6. Distribution packaging — DayDrop 1.1.1 universal Developer ID DMG, `.p8` notarization, stapling, Gatekeeper verification, signed Sparkle feed, and Cloudflare Pages publication complete; signed real-Mac interaction acceptance remains pending.
 
