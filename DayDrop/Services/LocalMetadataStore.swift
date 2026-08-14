@@ -148,6 +148,9 @@ public struct OperationRecord: Codable, Equatable, Identifiable, Sendable {
     public let performedAt: Date
     public let succeeded: Bool
     public let errorMessage: String?
+    public let fileCategory: HistoryFileCategory
+    public let trigger: HistoryOperationTrigger
+    public let operationKind: HistoryOperationKind
 
     public init(
         id: UUID = UUID(),
@@ -156,7 +159,10 @@ public struct OperationRecord: Codable, Equatable, Identifiable, Sendable {
         destinationPath: String,
         performedAt: Date = Date(),
         succeeded: Bool,
-        errorMessage: String? = nil
+        errorMessage: String? = nil,
+        fileCategory: HistoryFileCategory? = nil,
+        trigger: HistoryOperationTrigger = .legacyImport,
+        operationKind: HistoryOperationKind = .fileMove
     ) {
         self.id = id
         self.fileName = fileName
@@ -165,6 +171,45 @@ public struct OperationRecord: Codable, Equatable, Identifiable, Sendable {
         self.performedAt = performedAt
         self.succeeded = succeeded
         self.errorMessage = errorMessage
+        self.fileCategory = fileCategory ?? FileTypeClassifier.category(forFileName: fileName)
+        self.trigger = trigger
+        self.operationKind = operationKind
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case fileName
+        case sourcePath
+        case destinationPath
+        case performedAt
+        case succeeded
+        case errorMessage
+        case fileCategory
+        case trigger
+        case operationKind
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        fileName = try container.decode(String.self, forKey: .fileName)
+        sourcePath = try container.decode(String.self, forKey: .sourcePath)
+        destinationPath = try container.decode(String.self, forKey: .destinationPath)
+        performedAt = try container.decode(Date.self, forKey: .performedAt)
+        succeeded = try container.decode(Bool.self, forKey: .succeeded)
+        errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
+        fileCategory = try container.decodeIfPresent(
+            HistoryFileCategory.self,
+            forKey: .fileCategory
+        ) ?? FileTypeClassifier.category(forFileName: fileName)
+        trigger = try container.decodeIfPresent(
+            HistoryOperationTrigger.self,
+            forKey: .trigger
+        ) ?? .legacyImport
+        operationKind = try container.decodeIfPresent(
+            HistoryOperationKind.self,
+            forKey: .operationKind
+        ) ?? .fileMove
     }
 }
 
@@ -191,8 +236,9 @@ public enum LocalMetadataStoreError: Error, Equatable, LocalizedError {
     }
 }
 
-/// Serializes all mutations and replaces one JSON snapshot atomically, ensuring a
-/// failed write never partially updates the in-memory or on-disk state.
+/// Serializes managed-folder control state and the bounded legacy history
+/// snapshot. New operation history is persisted by `HistoryStore`; the legacy
+/// array remains readable so existing installations can migrate idempotently.
 public actor LocalMetadataStore {
     private struct PersistedState: Codable {
         var schemaVersion: Int

@@ -21,6 +21,51 @@ final class ArchiveEngineTests: XCTestCase {
         temporaryRoot = nil
     }
 
+    func testPersistedIdentityUsesStableVolumeUUIDAndSurvivesRename() throws {
+        let folder = temporaryRoot.appendingPathComponent("identity", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+
+        let originalIdentity = try XCTUnwrap(
+            FileSystemIdentity.directoryIdentifier(at: folder)
+        )
+        XCTAssertTrue(originalIdentity.hasPrefix("v2:"))
+
+        let renamed = temporaryRoot.appendingPathComponent("renamed", isDirectory: true)
+        try FileManager.default.moveItem(at: folder, to: renamed)
+        XCTAssertEqual(
+            FileSystemIdentity.directoryIdentifier(at: renamed),
+            originalIdentity
+        )
+    }
+
+    func testLegacyBootLocalIdentityCanUpgradeOnlyWithMatchingInode() throws {
+        let folder = temporaryRoot.appendingPathComponent("legacy", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let currentIdentity = try XCTUnwrap(
+            FileSystemIdentity.directoryIdentifier(at: folder)
+        )
+        let inode = try XCTUnwrap(currentIdentity.split(separator: ":").last)
+
+        XCTAssertTrue(
+            FileSystemIdentity.isLegacyIdentifier(
+                "999999:\(inode)",
+                compatibleWith: currentIdentity
+            )
+        )
+        XCTAssertFalse(
+            FileSystemIdentity.isLegacyIdentifier(
+                "999999:1",
+                compatibleWith: currentIdentity
+            )
+        )
+        XCTAssertFalse(
+            FileSystemIdentity.isLegacyIdentifier(
+                "not-an-identity",
+                compatibleWith: currentIdentity
+            )
+        )
+    }
+
     func testMoveUsesRouteAndPreservesBothCollidingFiles() async throws {
         let firstSource = temporaryRoot.appendingPathComponent("report.pdf")
         try Data("first".utf8).write(to: firstSource)

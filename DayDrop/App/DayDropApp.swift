@@ -17,12 +17,16 @@ struct DayDropApp: App {
                 MenuBarView(controller: controller)
             }
         } label: {
-            Label(
-                updater.availableVersion.map { "DayDrop，版本 \($0) 可更新" } ?? "DayDrop",
-                systemImage: updater.availableVersion == nil
-                    ? (controller.isPaused ? "drop" : "drop.fill")
-                    : "arrow.down.circle.fill"
-            )
+            Image("MenuBarIcon")
+                .renderingMode(.original)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16)
+                .opacity(controller.isPaused ? 0.55 : 1)
+                .accessibilityLabel(
+                    updater.availableVersion.map { "DayDrop，版本 \($0) 可更新" }
+                        ?? (controller.isPaused ? "DayDrop，已暂停" : "DayDrop")
+                )
         }
         .menuBarExtraStyle(.window)
     }

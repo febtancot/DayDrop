@@ -204,10 +204,10 @@ struct MenuBarView: View {
     private var recentActivityAction: some View {
         VStack(spacing: 0) {
             MenuActionRow(
-                title: "最近整理记录",
-                systemImage: "clock.arrow.circlepath",
-                badge: controller.recentOperations.isEmpty ? nil : "\(min(controller.recentOperations.count, LocalMetadataStore.defaultMaximumOperationRecords))",
-                accessibilityHint: "查看最近最多一百条整理结果"
+                title: "文件查询",
+                systemImage: "doc.text.magnifyingglass",
+                badge: controller.indexedFileCount == 0 ? nil : "\(controller.indexedFileCount)",
+                accessibilityHint: "搜索下载目录中的当前文件或查看完整整理记录"
             ) {
                 controller.showRecentActivity()
             }

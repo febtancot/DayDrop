@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import Foundation
+import UniformTypeIdentifiers
 
 enum DayDropRuntime {
     static var isRunningUnitTests: Bool {
@@ -16,6 +17,18 @@ enum ExistingFileOrganizationScope: Equatable, Sendable {
         switch self {
         case .topLevel: 1
         case .includingImmediateSubfolders: 2
+        }
+    }
+}
+
+enum LibraryQueryScope: String, CaseIterable, Sendable {
+    case files
+    case operations
+
+    var displayName: String {
+        switch self {
+        case .files: return "下载文件"
+        case .operations: return "整理记录"
         }
     }
 }
@@ -77,6 +90,20 @@ final class DayDropController: ObservableObject {
     @Published private(set) var folderDisplayName = "下载"
     @Published private(set) var todayFiles: [TodayFileItem] = []
     @Published private(set) var recentOperations: [OperationRecord] = []
+    @Published private(set) var historyOperations: [OperationRecord] = []
+    @Published private(set) var historyFilter = HistoryFilter.all
+    @Published private(set) var historyTotalCount = 0
+    @Published private(set) var totalOperationCount = 0
+    @Published private(set) var isLoadingHistory = false
+    @Published private(set) var historyErrorMessage: String?
+    @Published private(set) var libraryQueryScope = LibraryQueryScope.files
+    @Published private(set) var indexedFiles: [IndexedDownloadFile] = []
+    @Published private(set) var indexedFileFilter = DownloadFileFilter.current
+    @Published private(set) var indexedFileQueryCount = 0
+    @Published private(set) var indexedFileCount = 0
+    @Published private(set) var isLoadingIndexedFiles = false
+    @Published private(set) var isReconcilingDownloadsIndex = false
+    @Published private(set) var downloadsIndexErrorMessage: String?
     @Published private(set) var launchAtLogin = false
     @Published private(set) var notificationsEnabled: Bool
     @Published private(set) var statusMessage: String?
@@ -96,13 +123,15 @@ final class DayDropController: ObservableObject {
 
     private struct PendingCandidate {
         var snapshot: TopLevelFileSnapshot
-        var stability = FileSizeStabilityTracker()
+        var finalization: FileFinalizationTracker
+        let finalizationMonitor: FileFinalizationMonitor
         var origin: CandidateOrigin
         var organizationScope: ExistingFileOrganizationScope = .topLevel
         var failureCount = 0
         var nextMoveAttempt = Date.distantPast
-        var nextStabilityObservation = Date.distantPast
     }
+
+    private static let finalizationQuietInterval: TimeInterval = 2
 
     var onOnboardingCompleted: (() -> Void)?
     var onShowOnboarding: (() -> Void)?
@@ -115,6 +144,8 @@ final class DayDropController: ObservableObject {
     private let defaults: UserDefaults
     private let bookmarkStore: DownloadsBookmarkStore
     private let metadataStore: LocalMetadataStore?
+    private let historyStore: HistoryStore?
+    private let downloadsIndexStore: DownloadsIndexStore?
     private let loginItemService: LoginItemService
     private let notificationService: BatchNotificationService
     private let archiveEngine: ArchiveEngine
@@ -124,12 +155,21 @@ final class DayDropController: ObservableObject {
     private var folderAccess: SecurityScopedFolderAccess?
     private var downloadsURL: URL?
     private var rootMonitor: DirectoryEventMonitor?
+    private var downloadsTreeMonitor: DownloadsTreeEventMonitor?
     private var todayMonitor: DirectoryEventMonitor?
     private var todayMonitorURL: URL?
     private var baselineIdentities: Set<String> = []
     private var pendingCandidates: [String: PendingCandidate] = [:]
     private var processingIdentities: Set<String> = []
     private var retryTask: Task<Void, Never>?
+    private var historySearchTask: Task<Void, Never>?
+    private var historyCursor: HistoryCursor?
+    private var historyQueryGeneration = 0
+    private var indexedFileSearchTask: Task<Void, Never>?
+    private var indexedFileCursor: DownloadFileCursor?
+    private var indexedFileQueryGeneration = 0
+    private var downloadsIndexDebounceTask: Task<Void, Never>?
+    private var downloadsIndexScanRequested = false
     private var rootDebounceTask: Task<Void, Never>?
     private var midnightTask: Task<Void, Never>?
     private var notificationObservers: [NSObjectProtocol] = []
@@ -139,6 +179,7 @@ final class DayDropController: ObservableObject {
     private var migrationInProgress = false
     private var migrationCancellationToken: ArchiveMigrationCancellationToken?
     private var blockingFailureRequiresRestart = false
+    private var blockingFailureMessage: String?
 
     private init(
         defaults: UserDefaults = .standard,
@@ -154,17 +195,36 @@ final class DayDropController: ObservableObject {
         self.isPaused = defaults.bool(forKey: DefaultsKey.paused)
         self.notificationsEnabled = defaults.bool(forKey: DefaultsKey.notificationsEnabled)
 
-        if DayDropRuntime.isRunningUnitTests {
-            self.metadataStore = nil
-        } else {
+        var initializedMetadataStore: LocalMetadataStore?
+        var initializedHistoryStore: HistoryStore?
+        var initializedDownloadsIndexStore: DownloadsIndexStore?
+        var storageInitializationError: Error?
+        var indexInitializationError: Error?
+        if !DayDropRuntime.isRunningUnitTests {
             do {
-                self.metadataStore = try LocalMetadataStore()
+                initializedMetadataStore = try LocalMetadataStore()
+                initializedHistoryStore = try HistoryStore()
             } catch {
-                self.metadataStore = nil
-                self.isPaused = true
-                defaults.set(true, forKey: DefaultsKey.paused)
-                self.statusMessage = "本地记录存储不可用：\(error.localizedDescription)"
+                storageInitializationError = error
             }
+            do {
+                initializedDownloadsIndexStore = try DownloadsIndexStore()
+            } catch {
+                indexInitializationError = error
+            }
+        }
+        self.metadataStore = initializedMetadataStore
+        self.historyStore = initializedHistoryStore
+        self.downloadsIndexStore = initializedDownloadsIndexStore
+        if let storageInitializationError {
+            self.isPaused = true
+            defaults.set(true, forKey: DefaultsKey.paused)
+            let message = "本地记录存储不可用：\(storageInitializationError.localizedDescription)"
+            self.statusMessage = message
+            self.blockingFailureMessage = message
+        }
+        if let indexInitializationError {
+            self.downloadsIndexErrorMessage = indexInitializationError.localizedDescription
         }
     }
 
@@ -172,8 +232,19 @@ final class DayDropController: ObservableObject {
         guard !hasStarted else { return }
         hasStarted = true
 
-        if let metadataStore {
-            recentOperations = await metadataStore.loadOperationRecords()
+        if let metadataStore, let historyStore {
+            do {
+                let legacyRecords = await metadataStore.loadOperationRecords()
+                try await historyStore.importLegacyRecords(legacyRecords)
+                let recentPage = try await historyStore.page(limit: 100)
+                recentOperations = recentPage.records
+                historyTotalCount = recentPage.totalCount
+                totalOperationCount = recentPage.totalCount
+            } catch {
+                pauseAfterBlockingFailure(
+                    "无法迁移或读取整理记录，自动整理已暂停：\(error.localizedDescription)"
+                )
+            }
         }
 
         switch loginItemService.state {
@@ -200,8 +271,10 @@ final class DayDropController: ObservableObject {
 
         guard hasFolderAccess else { return }
         captureCurrentFilesAsBaseline()
+        startDownloadsTreeMonitor()
+        await reconcileDownloadsIndex()
 
-        if !isPaused, onboardingCompleted, metadataStore != nil {
+        if !isPaused, onboardingCompleted, metadataStore != nil, historyStore != nil {
             await migrateManagedFolders()
             startRootMonitor()
         }
@@ -211,9 +284,15 @@ final class DayDropController: ObservableObject {
     func stop() {
         rootDebounceTask?.cancel()
         retryTask?.cancel()
+        historySearchTask?.cancel()
+        indexedFileSearchTask?.cancel()
+        downloadsIndexDebounceTask?.cancel()
         midnightTask?.cancel()
         rootMonitor?.stop()
+        downloadsTreeMonitor?.stop()
         todayMonitor?.stop()
+        stopAllFinalizationMonitors()
+        pendingCandidates.removeAll()
         migrationCancellationToken?.cancel()
         notificationObservers.forEach(NotificationCenter.default.removeObserver)
         notificationObservers.removeAll()
@@ -223,8 +302,10 @@ final class DayDropController: ObservableObject {
     }
 
     func togglePaused() {
-        if isPaused, metadataStore == nil || blockingFailureRequiresRestart {
-            statusMessage = "DayDrop 检测到需要处理的存储或目录安全问题，请解决后重新启动。"
+        if isPaused,
+           metadataStore == nil || historyStore == nil || blockingFailureRequiresRestart {
+            statusMessage = blockingFailureMessage
+                ?? "DayDrop 检测到需要处理的存储或目录安全问题，请解决后重新启动。"
             return
         }
         isPaused.toggle()
@@ -234,7 +315,12 @@ final class DayDropController: ObservableObject {
             migrationCancellationToken?.cancel()
             rootMonitor?.stop()
             rootMonitor = nil
-            pendingCandidates = pendingCandidates.filter { $0.value.origin == .manualExistingFile }
+            let automaticIdentities = pendingCandidates.compactMap { identity, candidate in
+                candidate.origin == .runtimeDownload ? identity : nil
+            }
+            for identity in automaticIdentities {
+                removePendingCandidate(identity)
+            }
             statusMessage = "自动整理已暂停。"
             scheduleRetryIfNeeded()
         } else {
@@ -285,11 +371,15 @@ final class DayDropController: ObservableObject {
             try activateSavedFolderAuthorization()
             captureCurrentFilesAsBaseline()
             refreshTodayFilesNow()
-            if !isPaused, onboardingCompleted {
-                startRootMonitor()
-                Task { await migrateManagedFolders() }
+            Task {
+                startDownloadsTreeMonitor()
+                await reconcileDownloadsIndex()
+                if !isPaused, onboardingCompleted {
+                    startRootMonitor()
+                    await migrateManagedFolders()
+                }
+                statusMessage = "已授权“下载”文件夹。"
             }
-            statusMessage = "已授权“下载”文件夹。"
         } catch {
             revokeFolderAccess(message: "无法保存文件夹授权：\(error.localizedDescription)")
         }
@@ -298,7 +388,7 @@ final class DayDropController: ObservableObject {
     func organizeExistingFiles(
         scope: ExistingFileOrganizationScope = .topLevel
     ) {
-        guard metadataStore != nil else {
+        guard metadataStore != nil, historyStore != nil else {
             statusMessage = "本地记录存储不可用，未移动任何文件。"
             return
         }
@@ -350,12 +440,12 @@ final class DayDropController: ObservableObject {
                     ) else {
                         continue
                     }
-                    if pendingCandidates[snapshot.identity] == nil {
-                        pendingCandidates[snapshot.identity] = PendingCandidate(
-                            snapshot: snapshot,
+                    if pendingCandidates[snapshot.identity] == nil,
+                       enqueuePendingCandidate(
+                            snapshot,
                             origin: .manualExistingFile,
                             organizationScope: scope
-                        )
+                       ) {
                         queued += 1
                     }
                 }
@@ -485,10 +575,188 @@ final class DayDropController: ObservableObject {
     func showRecentActivity() {
         isShowingSettings = false
         isShowingRecentActivity = true
+        libraryQueryScope = .files
+        resetIndexedFileQuery()
+        resetHistoryQuery()
     }
 
     func hideRecentActivity() {
+        historySearchTask?.cancel()
+        indexedFileSearchTask?.cancel()
         isShowingRecentActivity = false
+    }
+
+    func setLibraryQueryScope(_ scope: LibraryQueryScope) {
+        guard libraryQueryScope != scope else { return }
+        libraryQueryScope = scope
+        switch scope {
+        case .files: resetIndexedFileQuery()
+        case .operations: resetHistoryQuery()
+        }
+    }
+
+    func updateIndexedFileSearchText(_ value: String) {
+        indexedFileFilter.searchText = value
+        indexedFileQueryGeneration += 1
+        indexedFileSearchTask?.cancel()
+        indexedFileSearchTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            guard !Task.isCancelled, let self else { return }
+            await self.reloadIndexedFiles()
+        }
+    }
+
+    func setIndexedFileCategory(_ category: HistoryFileCategory?) {
+        guard indexedFileFilter.category != category else { return }
+        indexedFileFilter.category = category
+        resetIndexedFileQuery()
+    }
+
+    func setIndexedFilePresence(_ presence: DownloadFilePresenceFilter) {
+        guard indexedFileFilter.presence != presence else { return }
+        indexedFileFilter.presence = presence
+        resetIndexedFileQuery()
+    }
+
+    func clearIndexedFileFilters() {
+        indexedFileSearchTask?.cancel()
+        indexedFileFilter = .current
+        resetIndexedFileQuery()
+    }
+
+    func loadMoreIndexedFiles() {
+        guard indexedFileCursor != nil, !isLoadingIndexedFiles else { return }
+        let generation = indexedFileQueryGeneration
+        Task { await loadIndexedFilePage(replacing: false, generation: generation) }
+    }
+
+    func revealIndexedFile(_ file: IndexedDownloadFile) {
+        guard let downloadsURL, hasFolderAccess,
+              ManagedDayFolder.isValidRelativePath(file.relativePath)
+        else {
+            statusMessage = "请先重新授权“下载”文件夹。"
+            return
+        }
+
+        let components = file.relativePath.split(separator: "/").map(String.init)
+        var candidate = downloadsURL
+        var hasSafeParents = true
+        for component in components.dropLast() {
+            candidate.appendPathComponent(component, isDirectory: true)
+            if FileSystemIdentity.directoryIdentifier(at: candidate) == nil {
+                hasSafeParents = false
+                break
+            }
+        }
+        if hasSafeParents, let fileName = components.last {
+            candidate.appendPathComponent(fileName, isDirectory: file.isPackage)
+        }
+        candidate = candidate.standardizedFileURL
+        if hasSafeParents,
+           FileSystemIdentity.itemIdentifier(at: candidate) == file.fileSystemIdentity {
+            NSWorkspace.shared.activateFileViewerSelecting([candidate])
+            return
+        }
+
+        var parent = candidate.deletingLastPathComponent()
+        while parent.pathComponents.count >= downloadsURL.pathComponents.count {
+            if FileSystemIdentity.directoryIdentifier(at: parent) != nil {
+                NSWorkspace.shared.open(parent)
+                statusMessage = "文件已移动或删除，已打开最后记录位置。"
+                return
+            }
+            guard parent != downloadsURL else { break }
+            parent.deleteLastPathComponent()
+        }
+        statusMessage = "文件及其最后记录位置已不存在。"
+    }
+
+    func updateHistorySearchText(_ value: String) {
+        historyFilter.searchText = value
+        historyQueryGeneration += 1
+        historySearchTask?.cancel()
+        historySearchTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            guard !Task.isCancelled, let self else { return }
+            await self.reloadHistory()
+        }
+    }
+
+    func setHistoryOutcome(_ outcome: HistoryOutcomeFilter) {
+        guard historyFilter.outcome != outcome else { return }
+        historyFilter.outcome = outcome
+        resetHistoryQuery()
+    }
+
+    func setHistoryCategory(_ category: HistoryFileCategory?) {
+        guard historyFilter.category != category else { return }
+        historyFilter.category = category
+        resetHistoryQuery()
+    }
+
+    func clearHistoryFilters() {
+        historySearchTask?.cancel()
+        historyFilter = .all
+        resetHistoryQuery()
+    }
+
+    func loadMoreHistory() {
+        guard historyCursor != nil, !isLoadingHistory else { return }
+        let generation = historyQueryGeneration
+        Task { await loadHistoryPage(replacing: false, generation: generation) }
+    }
+
+    func exportHistory(_ format: HistoryExportFormat) {
+        guard let historyStore else {
+            statusMessage = "整理历史存储不可用，无法导出。"
+            return
+        }
+
+        let panel = NSSavePanel()
+        panel.title = "导出整理记录"
+        panel.nameFieldStringValue = "DayDrop-整理记录-\(ArchiveDay(date: Date()).encoded).\(format.fileExtension)"
+        panel.prompt = "导出"
+        panel.canCreateDirectories = true
+        panel.isExtensionHidden = false
+        panel.allowedContentTypes = format == .csv ? [.commaSeparatedText] : [.json]
+        guard panel.runModal() == .OK, let destinationURL = panel.url else { return }
+
+        let filter = historyFilter
+        Task {
+            do {
+                let count = try await historyStore.export(
+                    filter: filter,
+                    to: destinationURL,
+                    format: format
+                )
+                statusMessage = "已导出 \(count) 条整理记录。"
+                NSWorkspace.shared.activateFileViewerSelecting([destinationURL])
+            } catch {
+                statusMessage = "导出整理记录失败：\(error.localizedDescription)"
+            }
+        }
+    }
+
+    func revealHistoryRecord(_ record: OperationRecord) {
+        guard let downloadsURL, hasFolderAccess else {
+            statusMessage = "请先授权“下载”文件夹。"
+            return
+        }
+        guard let resolution = HistoryRecordLocationResolver().resolve(
+            record: record,
+            in: downloadsURL
+        ) else {
+            statusMessage = "记录中的文件和所在文件夹已不存在，或路径不在当前授权的“下载”文件夹内。"
+            return
+        }
+
+        switch resolution {
+        case .revealItem(let url):
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+        case .openRecordedDirectory(let url):
+            NSWorkspace.shared.open(url)
+            statusMessage = "记录中的文件可能已移动或删除，已打开其记录位置。"
+        }
     }
 
     func showSettings() {
@@ -548,7 +816,7 @@ final class DayDropController: ObservableObject {
     }
 
     func completeOnboarding(organizeExisting: Bool, launchAtLogin: Bool) {
-        guard metadataStore != nil else {
+        guard metadataStore != nil, historyStore != nil else {
             statusMessage = "本地记录存储不可用，暂时无法完成设置。"
             return
         }
@@ -690,12 +958,16 @@ final class DayDropController: ObservableObject {
 
         rootMonitor?.stop()
         rootMonitor = nil
+        downloadsTreeMonitor?.stop()
+        downloadsTreeMonitor = nil
+        downloadsIndexDebounceTask?.cancel()
         stopTodayMonitor()
         folderAccess?.stop()
         folderAccess = newAccess
         downloadsURL = newAccess.url.standardizedFileURL
         hasFolderAccess = true
         folderDisplayName = displayPath(for: newAccess.url)
+        stopAllFinalizationMonitors()
         pendingCandidates.removeAll()
         processingIdentities.removeAll()
     }
@@ -703,6 +975,9 @@ final class DayDropController: ObservableObject {
     private func revokeFolderAccess(message: String?, clearBookmark: Bool = false) {
         rootMonitor?.stop()
         rootMonitor = nil
+        downloadsTreeMonitor?.stop()
+        downloadsTreeMonitor = nil
+        downloadsIndexDebounceTask?.cancel()
         stopTodayMonitor()
         folderAccess?.stop()
         folderAccess = nil
@@ -710,6 +985,7 @@ final class DayDropController: ObservableObject {
         hasFolderAccess = false
         todayFiles = []
         baselineIdentities = []
+        stopAllFinalizationMonitors()
         pendingCandidates = [:]
         retryTask?.cancel()
         if clearBookmark {
@@ -776,6 +1052,68 @@ final class DayDropController: ObservableObject {
         }
     }
 
+    private func startDownloadsTreeMonitor() {
+        guard hasFolderAccess, downloadsIndexStore != nil, let downloadsURL else { return }
+        if downloadsTreeMonitor?.isRunning == true { return }
+
+        let monitor = DownloadsTreeEventMonitor(rootURL: downloadsURL)
+        do {
+            try monitor.start { [weak self] event in
+                Task { @MainActor in
+                    self?.handleDownloadsTreeEvent(event)
+                }
+            }
+            downloadsTreeMonitor = monitor
+        } catch {
+            downloadsIndexErrorMessage = error.localizedDescription
+        }
+    }
+
+    private func handleDownloadsTreeEvent(_ event: DownloadsTreeChangeEvent) {
+        guard hasFolderAccess else { return }
+        downloadsIndexDebounceTask?.cancel()
+        downloadsIndexDebounceTask = Task { [weak self] in
+            // FSEvents may coalesce a burst of file and parent-directory events.
+            // A slightly longer debounce avoids scanning once per copy/write phase.
+            try? await Task.sleep(nanoseconds: event.requiresFullScan ? 100_000_000 : 450_000_000)
+            guard !Task.isCancelled, let self else { return }
+            await self.reconcileDownloadsIndex()
+        }
+    }
+
+    private func reconcileDownloadsIndex() async {
+        guard let downloadsIndexStore, let downloadsURL, hasFolderAccess else { return }
+        if isReconcilingDownloadsIndex {
+            downloadsIndexScanRequested = true
+            return
+        }
+
+        isReconcilingDownloadsIndex = true
+        defer {
+            isReconcilingDownloadsIndex = false
+            if downloadsIndexScanRequested {
+                downloadsIndexScanRequested = false
+                Task { await reconcileDownloadsIndex() }
+            }
+        }
+
+        do {
+            let scanRoot = downloadsURL
+            let snapshots = try await Task.detached(priority: .utility) {
+                try DownloadsFileScanner().snapshots(in: scanRoot)
+            }.value
+            guard hasFolderAccess, self.downloadsURL == scanRoot else { return }
+            let summary = try await downloadsIndexStore.reconcile(snapshots)
+            indexedFileCount = summary.indexedFileCount
+            downloadsIndexErrorMessage = nil
+            if isShowingRecentActivity, libraryQueryScope == .files {
+                await reloadIndexedFiles()
+            }
+        } catch {
+            downloadsIndexErrorMessage = error.localizedDescription
+        }
+    }
+
     private func handleRootEvent(_ event: DirectoryChangeEvent) {
         guard !isPaused else { return }
         rootDebounceTask?.cancel()
@@ -799,7 +1137,9 @@ final class DayDropController: ObservableObject {
     }
 
     private func scanAndProcessCandidates(discoverAutomaticFiles: Bool) async {
-        guard let metadataStore, let downloadsURL, hasFolderAccess else { return }
+        guard let metadataStore, historyStore != nil, let downloadsURL, hasFolderAccess else {
+            return
+        }
         if scanInProgress {
             scanRequested = true
             return
@@ -849,8 +1189,31 @@ final class DayDropController: ObservableObject {
         }
 
         for identity in pendingCandidates.keys where snapshotsByIdentity[identity] == nil {
-            pendingCandidates.removeValue(forKey: identity)
+            removePendingCandidate(identity)
             processingIdentities.remove(identity)
+        }
+
+        for identity in Array(pendingCandidates.keys) {
+            guard let candidate = pendingCandidates[identity],
+                  !candidate.finalizationMonitor.isRunning,
+                  let snapshot = snapshotsByIdentity[identity]
+            else {
+                continue
+            }
+
+            let origin = candidate.origin
+            let organizationScope = candidate.organizationScope
+            let failureCount = candidate.failureCount
+            let nextMoveAttempt = candidate.nextMoveAttempt
+            removePendingCandidate(identity)
+            if enqueuePendingCandidate(
+                snapshot,
+                origin: origin,
+                organizationScope: organizationScope
+            ) {
+                pendingCandidates[identity]?.failureCount = failureCount
+                pendingCandidates[identity]?.nextMoveAttempt = nextMoveAttempt
+            }
         }
 
         if discoverAutomaticFiles && !isPaused {
@@ -858,10 +1221,7 @@ final class DayDropController: ObservableObject {
                 guard !baselineIdentities.contains(snapshot.identity),
                       pendingCandidates[snapshot.identity] == nil
                 else { continue }
-                pendingCandidates[snapshot.identity] = PendingCandidate(
-                    snapshot: snapshot,
-                    origin: .runtimeDownload
-                )
+                _ = enqueuePendingCandidate(snapshot, origin: .runtimeDownload)
             }
         }
 
@@ -880,15 +1240,18 @@ final class DayDropController: ObservableObject {
             else { continue }
 
             candidate.snapshot = latestSnapshot
-            let observationDate = Date()
-            guard observationDate >= candidate.nextStabilityObservation else {
-                pendingCandidates[identity] = candidate
-                continue
-            }
-            let stability = candidate.stability.observe(size: size)
-            candidate.nextStabilityObservation = observationDate.addingTimeInterval(1)
+            let observationUptime = ProcessInfo.processInfo.systemUptime
+            let finalization = candidate.finalization.observe(
+                size: size,
+                modificationDate: latestSnapshot.modificationDate,
+                atUptime: observationUptime
+            )
             pendingCandidates[identity] = candidate
-            guard stability == .stable,
+            guard finalization == .quiet,
+                  candidate.finalizationMonitor.hasBeenQuiet(
+                    for: Self.finalizationQuietInterval,
+                    atUptime: observationUptime
+                  ),
                   Date() >= candidate.nextMoveAttempt,
                   scanner.canAcquireExclusiveAdvisoryLock(on: latestSnapshot.url)
             else { continue }
@@ -909,10 +1272,11 @@ final class DayDropController: ObservableObject {
                         sourcePath: latestSnapshot.url.path,
                         destinationPath: latestSnapshot.url.path,
                         succeeded: false,
-                        errorMessage: "无法读取文件创建日期或修改日期。"
+                        errorMessage: "无法读取文件创建日期或修改日期。",
+                        trigger: historyTrigger(for: candidate)
                     )
                     persistenceFailed = !(await persistOperation(record)) || persistenceFailed
-                    pendingCandidates.removeValue(forKey: identity)
+                    removePendingCandidate(identity)
                     failedCount += 1
                     continue
                 }
@@ -994,6 +1358,20 @@ final class DayDropController: ObservableObject {
                 continue
             }
 
+            guard let currentCandidate = pendingCandidates[identity],
+                  currentCandidate.finalizationMonitor.hasBeenQuiet(
+                    for: Self.finalizationQuietInterval
+                  ),
+                  let revalidatedSnapshot = scanner.snapshot(at: latestSnapshot.url),
+                  revalidatedSnapshot.identity == latestSnapshot.identity,
+                  revalidatedSnapshot.size == latestSnapshot.size,
+                  revalidatedSnapshot.modificationDate == latestSnapshot.modificationDate
+            else {
+                processingIdentities.remove(identity)
+                continue
+            }
+            candidate = currentCandidate
+
             let result: ArchiveFileMoveResult
             if let ownershipError {
                 result = ArchiveFileMoveResult(
@@ -1024,21 +1402,23 @@ final class DayDropController: ObservableObject {
                 sourcePath: result.sourceURL.path,
                 destinationPath: result.destinationURL.path,
                 succeeded: result.succeeded,
-                errorMessage: result.errorMessage
+                errorMessage: result.errorMessage,
+                trigger: historyTrigger(for: candidate)
             )
 
             if result.succeeded {
-                pendingCandidates.removeValue(forKey: identity)
+                removePendingCandidate(identity)
                 baselineIdentities.insert(identity)
                 succeededCount += 1
                 if !targetIsManaged {
                     unmanagedDestinationCount += 1
                 }
             } else {
-                candidate.failureCount += 1
-                let backoff = min(pow(2.0, Double(candidate.failureCount)), 60.0)
-                candidate.nextMoveAttempt = Date().addingTimeInterval(backoff)
-                pendingCandidates[identity] = candidate
+                var retryCandidate = pendingCandidates[identity] ?? candidate
+                retryCandidate.failureCount += 1
+                let backoff = min(pow(2.0, Double(retryCandidate.failureCount)), 60.0)
+                retryCandidate.nextMoveAttempt = Date().addingTimeInterval(backoff)
+                pendingCandidates[identity] = retryCandidate
                 failedCount += 1
             }
             persistenceFailed = !(await persistOperation(record)) || persistenceFailed
@@ -1075,17 +1455,184 @@ final class DayDropController: ObservableObject {
         }
     }
 
-    private func persistOperation(_ record: OperationRecord) async -> Bool {
-        guard let metadataStore else { return false }
+    @discardableResult
+    private func enqueuePendingCandidate(
+        _ snapshot: TopLevelFileSnapshot,
+        origin: CandidateOrigin,
+        organizationScope: ExistingFileOrganizationScope = .topLevel
+    ) -> Bool {
+        let observedUptime = ProcessInfo.processInfo.systemUptime
+        let monitor = FileFinalizationMonitor(fileURL: snapshot.url)
         do {
-            try await metadataStore.appendOperationRecord(record)
-            recentOperations = await metadataStore.loadOperationRecords()
+            try monitor.start(observedUptime: observedUptime) { [weak self] event in
+                Task { @MainActor in
+                    self?.handleFinalizationEvent(
+                        event,
+                        identity: snapshot.identity
+                    )
+                }
+            }
+        } catch {
+            statusMessage = "无法确认“\(snapshot.fileName)”已最终落盘，未移动该文件。"
+            return false
+        }
+
+        pendingCandidates[snapshot.identity] = PendingCandidate(
+            snapshot: snapshot,
+            finalization: FileFinalizationTracker(
+                size: snapshot.size,
+                modificationDate: snapshot.modificationDate,
+                observedUptime: observedUptime,
+                quietInterval: Self.finalizationQuietInterval
+            ),
+            finalizationMonitor: monitor,
+            origin: origin,
+            organizationScope: organizationScope
+        )
+        return true
+    }
+
+    private func handleFinalizationEvent(
+        _ event: FileFinalizationEvent,
+        identity: String
+    ) {
+        guard var candidate = pendingCandidates[identity] else { return }
+        candidate.finalization.recordFilesystemActivity(
+            atUptime: event.observedUptime
+        )
+        pendingCandidates[identity] = candidate
+
+        if event.invalidatesMonitor {
+            Task {
+                await scanAndProcessCandidates(discoverAutomaticFiles: !isPaused)
+            }
+        }
+    }
+
+    private func removePendingCandidate(_ identity: String) {
+        pendingCandidates.removeValue(forKey: identity)?.finalizationMonitor.stop()
+    }
+
+    private func stopAllFinalizationMonitors() {
+        for candidate in pendingCandidates.values {
+            candidate.finalizationMonitor.stop()
+        }
+    }
+
+    private func persistOperation(_ record: OperationRecord) async -> Bool {
+        guard let historyStore else { return false }
+        do {
+            try await historyStore.append(record)
+            try await refreshRecentOperations()
             return true
         } catch {
             pauseAfterBlockingFailure(
                 "无法保存整理记录，自动整理已暂停：\(error.localizedDescription)"
             )
             return false
+        }
+    }
+
+    private func historyTrigger(for candidate: PendingCandidate) -> HistoryOperationTrigger {
+        switch candidate.origin {
+        case .runtimeDownload:
+            return .automaticDownload
+        case .manualExistingFile:
+            return candidate.organizationScope == .includingImmediateSubfolders
+                ? .manualDeep
+                : .manualTopLevel
+        }
+    }
+
+    private func refreshRecentOperations() async throws {
+        guard let historyStore else { return }
+        let page = try await historyStore.page(limit: 100)
+        recentOperations = page.records
+        totalOperationCount = page.totalCount
+        if isShowingRecentActivity {
+            await reloadHistory()
+        }
+    }
+
+    private func resetHistoryQuery() {
+        historySearchTask?.cancel()
+        Task { await reloadHistory() }
+    }
+
+    private func resetIndexedFileQuery() {
+        indexedFileSearchTask?.cancel()
+        Task { await reloadIndexedFiles() }
+    }
+
+    private func reloadIndexedFiles() async {
+        indexedFileQueryGeneration += 1
+        let generation = indexedFileQueryGeneration
+        indexedFileCursor = nil
+        await loadIndexedFilePage(replacing: true, generation: generation)
+    }
+
+    private func loadIndexedFilePage(replacing: Bool, generation: Int) async {
+        guard let downloadsIndexStore else {
+            downloadsIndexErrorMessage = downloadsIndexErrorMessage ?? "下载文件索引不可用。"
+            return
+        }
+        if !replacing, isLoadingIndexedFiles { return }
+        isLoadingIndexedFiles = true
+        defer {
+            if generation == indexedFileQueryGeneration {
+                isLoadingIndexedFiles = false
+            }
+        }
+
+        do {
+            let page = try await downloadsIndexStore.page(
+                filter: indexedFileFilter,
+                after: replacing ? nil : indexedFileCursor
+            )
+            guard generation == indexedFileQueryGeneration else { return }
+            indexedFiles = replacing ? page.records : indexedFiles + page.records
+            indexedFileCursor = page.nextCursor
+            indexedFileQueryCount = page.totalCount
+            if indexedFileFilter == .current {
+                indexedFileCount = page.totalCount
+            }
+            downloadsIndexErrorMessage = nil
+        } catch {
+            guard generation == indexedFileQueryGeneration else { return }
+            downloadsIndexErrorMessage = error.localizedDescription
+        }
+    }
+
+    private func reloadHistory() async {
+        historyQueryGeneration += 1
+        let generation = historyQueryGeneration
+        historyCursor = nil
+        await loadHistoryPage(replacing: true, generation: generation)
+    }
+
+    private func loadHistoryPage(replacing: Bool, generation: Int) async {
+        guard let historyStore else { return }
+        if !replacing, isLoadingHistory { return }
+        isLoadingHistory = true
+        historyErrorMessage = nil
+        defer {
+            if generation == historyQueryGeneration {
+                isLoadingHistory = false
+            }
+        }
+
+        do {
+            let page = try await historyStore.page(
+                filter: historyFilter,
+                after: replacing ? nil : historyCursor
+            )
+            guard generation == historyQueryGeneration else { return }
+            historyOperations = replacing ? page.records : historyOperations + page.records
+            historyCursor = page.nextCursor
+            historyTotalCount = page.totalCount
+        } catch {
+            guard generation == historyQueryGeneration else { return }
+            historyErrorMessage = error.localizedDescription
         }
     }
 
@@ -1104,10 +1651,12 @@ final class DayDropController: ObservableObject {
 
     private func pauseAfterBlockingFailure(_ message: String) {
         blockingFailureRequiresRestart = true
+        blockingFailureMessage = message
         isPaused = true
         defaults.set(true, forKey: DefaultsKey.paused)
         rootMonitor?.stop()
         rootMonitor = nil
+        stopAllFinalizationMonitors()
         pendingCandidates.removeAll()
         processingIdentities.removeAll()
         retryTask?.cancel()
@@ -1119,7 +1668,8 @@ final class DayDropController: ObservableObject {
         guard !migrationInProgress,
               !isPaused,
               let downloadsURL,
-              let metadataStore
+              let metadataStore,
+              let historyStore
         else { return }
 
         migrationInProgress = true
@@ -1222,10 +1772,41 @@ final class DayDropController: ObservableObject {
                    at: sourceURL
                ) {
                 if currentSourceIdentity != folder.directoryIdentity {
-                    pauseAfterBlockingFailure(
-                        "受管理目录的文件系统身份已变化，未执行迁移。"
+                    let ownershipDate = DayDropDirectoryOwnershipMarker
+                        .managedDateIdentifier(at: sourceURL)
+                    guard let persistedIdentity = folder.directoryIdentity,
+                          ownershipDate == folder.dateIdentifier,
+                          FileSystemIdentity.isLegacyIdentifier(
+                              persistedIdentity,
+                              compatibleWith: currentSourceIdentity
+                          )
+                    else {
+                        pauseAfterBlockingFailure(
+                            "受管理目录的文件系统身份已变化，未执行迁移。"
+                        )
+                        break migrationLoop
+                    }
+
+                    // A kernel-assigned st_dev value can change across reboot.
+                    // The matching inode plus DayDrop ownership marker proves
+                    // this is the same managed directory, so persist the stable
+                    // volume-UUID identity before continuing.
+                    folder = ManagedDayFolder(
+                        dateIdentifier: folder.dateIdentifier,
+                        relativePath: folder.relativePath,
+                        directoryIdentity: currentSourceIdentity,
+                        pendingRelativePath: folder.pendingRelativePath,
+                        pendingDestinationIdentity: folder.pendingDestinationIdentity,
+                        pendingDestinationExpectedAbsent: folder.pendingDestinationExpectedAbsent
                     )
-                    break migrationLoop
+                    do {
+                        try await metadataStore.upsertManagedFolder(folder)
+                    } catch {
+                        pauseAfterBlockingFailure(
+                            "无法升级受管理目录的持久身份：\(error.localizedDescription)"
+                        )
+                        break migrationLoop
+                    }
                 }
                 let ownershipDate = DayDropDirectoryOwnershipMarker
                     .managedDateIdentifier(at: sourceURL)
@@ -1249,6 +1830,65 @@ final class DayDropController: ObservableObject {
                 }
             }
 
+            // A restart can also occur after a migration intent was saved but
+            // before it was finalized. Upgrade the recorded destination (or a
+            // completed move that was expected to create the destination) with
+            // the same inode + ownership proof used for the source directory.
+            if let pendingPath = folder.pendingRelativePath,
+               let pendingURL = managedFolderURL(
+                   relativePath: pendingPath,
+                   rootURL: downloadsURL
+               ),
+               let currentPendingIdentity = FileSystemIdentity.directoryIdentifier(
+                   at: pendingURL
+               ),
+               DayDropDirectoryOwnershipMarker.managedDateIdentifier(at: pendingURL)
+                    == folder.dateIdentifier {
+                var upgradedDirectoryIdentity = folder.directoryIdentity
+                var upgradedPendingIdentity = folder.pendingDestinationIdentity
+                var identityWasUpgraded = false
+
+                if let persistedPendingIdentity = folder.pendingDestinationIdentity,
+                   persistedPendingIdentity != currentPendingIdentity,
+                   FileSystemIdentity.isLegacyIdentifier(
+                       persistedPendingIdentity,
+                       compatibleWith: currentPendingIdentity
+                   ) {
+                    upgradedPendingIdentity = currentPendingIdentity
+                    identityWasUpgraded = true
+                } else if folder.pendingDestinationExpectedAbsent,
+                          let persistedSourceIdentity = folder.directoryIdentity,
+                          persistedSourceIdentity != currentPendingIdentity,
+                          FileSystemIdentity.isLegacyIdentifier(
+                              persistedSourceIdentity,
+                              compatibleWith: currentPendingIdentity
+                          ) {
+                    // The source was renamed into the destination before the
+                    // metadata finalization write. Its inode is unchanged.
+                    upgradedDirectoryIdentity = currentPendingIdentity
+                    identityWasUpgraded = true
+                }
+
+                if identityWasUpgraded {
+                    folder = ManagedDayFolder(
+                        dateIdentifier: folder.dateIdentifier,
+                        relativePath: folder.relativePath,
+                        directoryIdentity: upgradedDirectoryIdentity,
+                        pendingRelativePath: folder.pendingRelativePath,
+                        pendingDestinationIdentity: upgradedPendingIdentity,
+                        pendingDestinationExpectedAbsent: folder.pendingDestinationExpectedAbsent
+                    )
+                    do {
+                        try await metadataStore.upsertManagedFolder(folder)
+                    } catch {
+                        pauseAfterBlockingFailure(
+                            "无法升级目录迁移意图的持久身份：\(error.localizedDescription)"
+                        )
+                        break migrationLoop
+                    }
+                }
+            }
+
             let desiredPath: String
             if let sourceDay = ArchiveDay(encoded: folder.dateIdentifier) {
                 desiredPath = router.route(for: sourceDay, relativeTo: today).relativePath
@@ -1259,7 +1899,10 @@ final class DayDropController: ObservableObject {
                     sourcePath: folder.relativePath,
                     destinationPath: folder.relativePath,
                     succeeded: false,
-                    errorMessage: "受管理目录的完整日期无效。"
+                    errorMessage: "受管理目录的完整日期无效。",
+                    fileCategory: .other,
+                    trigger: .scheduledMigration,
+                    operationKind: .managedFolderMigration
                 ))
                 continue
             }
@@ -1379,7 +2022,10 @@ final class DayDropController: ObservableObject {
                         fileName: result.sourceURL.lastPathComponent,
                         sourcePath: result.sourceURL.path,
                         destinationPath: result.destinationURL.path,
-                        succeeded: true
+                        succeeded: true,
+                        fileCategory: .other,
+                        trigger: .scheduledMigration,
+                        operationKind: .managedFolderMigration
                     ))
                     needsFollowUpPass = needsFollowUpPass
                         || result.expectedRelativePath != desiredPath
@@ -1398,7 +2044,10 @@ final class DayDropController: ObservableObject {
                         sourcePath: result.sourceURL.path,
                         destinationPath: result.destinationURL.path,
                         succeeded: false,
-                        errorMessage: "迁移意图仍存在，但来源与可验证目标均不可用。"
+                        errorMessage: "迁移意图仍存在，但来源与可验证目标均不可用。",
+                        fileCategory: .other,
+                        trigger: .scheduledMigration,
+                        operationKind: .managedFolderMigration
                     ))
                     pauseAfterBlockingFailure(
                         "无法安全恢复未完成的目录迁移，记录已保留并暂停自动整理。"
@@ -1427,7 +2076,10 @@ final class DayDropController: ObservableObject {
                     sourcePath: result.sourceURL.path,
                     destinationPath: result.destinationURL.path,
                     succeeded: false,
-                    errorMessage: result.errorMessage
+                    errorMessage: result.errorMessage,
+                    fileCategory: .other,
+                    trigger: .scheduledMigration,
+                    operationKind: .managedFolderMigration
                 ))
                 pauseAfterBlockingFailure(
                     result.errorMessage.map {
@@ -1444,8 +2096,8 @@ final class DayDropController: ObservableObject {
 
         if !records.isEmpty {
             do {
-                try await metadataStore.appendOperationRecords(records)
-                recentOperations = await metadataStore.loadOperationRecords()
+                try await historyStore.append(records)
+                try await refreshRecentOperations()
             } catch {
                 pauseAfterBlockingFailure(
                     "无法保存迁移记录；自动整理已暂停：\(error.localizedDescription)"

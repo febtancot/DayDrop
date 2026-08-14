@@ -2,6 +2,8 @@ import Darwin
 import Foundation
 
 enum FileSystemIdentity {
+    private static let stableVersionPrefix = "v2"
+
     static func directoryIdentifier(at url: URL) -> String? {
         identifier(at: url, requireDirectory: true, allowSymbolicLink: false)
     }
@@ -27,10 +29,67 @@ enum FileSystemIdentity {
         else {
             return nil
         }
-        // `st_dev` identifies the volume and `st_ino` the item on that
-        // volume. Unlike URL resource-value caching, lstat reflects the path
-        // entry at the exact validation point and survives a directory rename.
-        return "\(fileStatus.st_dev):\(fileStatus.st_ino)"
+        // `st_dev` is assigned by the kernel and can change after a restart,
+        // which made persisted identities reject the same APFS item on the next
+        // login. Pair the stable volume UUID with the inode instead. Recheck the
+        // path entry after reading Foundation's volume value so a concurrent
+        // replacement cannot be accepted under the first lstat result.
+        guard let volumeUUID = try? url.resourceValues(
+            forKeys: [.volumeUUIDStringKey]
+        ).volumeUUIDString else {
+            return nil
+        }
+        var verifiedStatus = stat()
+        guard lstat(url.path, &verifiedStatus) == 0,
+              verifiedStatus.st_dev == fileStatus.st_dev,
+              verifiedStatus.st_ino == fileStatus.st_ino,
+              (verifiedStatus.st_mode & S_IFMT) == itemType
+        else {
+            return nil
+        }
+        return "\(stableVersionPrefix):\(volumeUUID.lowercased()):\(fileStatus.st_ino)"
+    }
+
+    /// Accepts a pre-v2 `st_dev:st_ino` identity only when its inode still
+    /// matches. Callers must add their own ownership/path proof before using
+    /// this compatibility result to upgrade persisted authority.
+    static func isLegacyIdentifier(
+        _ persistedIdentifier: String,
+        compatibleWith currentIdentifier: String
+    ) -> Bool {
+        guard let persisted = components(of: persistedIdentifier),
+              let current = components(of: currentIdentifier),
+              persisted.isLegacy,
+              persisted.inode == current.inode
+        else {
+            return false
+        }
+        return true
+    }
+
+    /// Exact-path index reconciliation may safely retain the existing record
+    /// while upgrading its old boot-local identity to v2. This deliberately
+    /// does not make differently pathed items equivalent.
+    static func identifiersMatchAtSamePath(_ lhs: String, _ rhs: String) -> Bool {
+        lhs == rhs
+            || isLegacyIdentifier(lhs, compatibleWith: rhs)
+            || isLegacyIdentifier(rhs, compatibleWith: lhs)
+    }
+
+    private static func components(of identifier: String) -> (isLegacy: Bool, inode: UInt64)? {
+        let parts = identifier.split(separator: ":", omittingEmptySubsequences: false)
+        if parts.count == 2,
+           UInt64(parts[0]) != nil,
+           let inode = UInt64(parts[1]) {
+            return (true, inode)
+        }
+        if parts.count == 3,
+           parts[0] == Substring(stableVersionPrefix),
+           UUID(uuidString: String(parts[1])) != nil,
+           let inode = UInt64(parts[2]) {
+            return (false, inode)
+        }
+        return nil
     }
 }
 

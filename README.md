@@ -2,7 +2,7 @@
 
 **Downloads, day by day.**
 
-DayDrop is a privacy-first macOS 13+ menu-bar app that waits for downloads to finish, then organizes top-level files in the user's Downloads folder by day, month, and year. An explicit deep-organization action can also include files inside immediate subfolders after a destructive-risk confirmation. File organization and history stay local; the only network path is the optional Sparkle update check against DayDrop's HTTPS website.
+DayDrop is a privacy-first macOS 13+ menu-bar app that waits for downloads to finish, then organizes top-level files in the user's Downloads folder by day, month, and year. Candidate files must remain quiet for two seconds under both per-file vnode monitoring and size/modification-date checks before the final lock and identity checks allow a move. A separate read-only index keeps files anywhere below Downloads searchable without moving them. An explicit deep-organization action can include files inside immediate subfolders only after a destructive-risk confirmation. File metadata, change history, and organization history stay local; the only network path is the optional Sparkle update check against DayDrop's HTTPS website.
 
 ## Current development workflow
 
@@ -38,7 +38,9 @@ The menu-bar panel currently provides:
 
 - A clickable **今日下载** module. Clicking its title, empty state, or file-list area creates today's managed folder when needed and opens it in Finder.
 - Separate manual actions for safe top-level organization and opt-in deep organization. Deep organization covers the Downloads root plus files exactly one folder level below it, warns that existing grouping may be disrupted, and requires a second destructive confirmation.
-- Downloads-folder access, recent operation history, settings, pause/resume, and local status feedback.
+- Downloads-folder access and a **文件查询** destination that defaults to a recursive current-file index, can include files no longer found under Downloads, and keeps permanent operation history as a separate scope.
+- Recursive FSEvents-backed indexing detects unambiguous rename, move, modification, discovery/copy, and “moved out or deleted” changes through metadata reconciliation. Packages are one item; symbolic links are never followed; file contents are never read.
+- File-type classification, search/filter, double-click Finder reveal, filtered operation-history CSV/JSON export, settings, pause/resume, and local status feedback. Pausing automatic organization does not pause read-only indexing.
 - Compact launch-at-login and completion-notification switches with the same runtime-backed bindings in the main panel and Settings.
 - A Settings destination for general controls, Downloads authorization, and reopening the welcome/setup page.
 - The current version in the menu footer and Settings, plus manual and daily automatic update checks powered by Sparkle 2. Updates require the HTTPS appcast, EdDSA signature, Developer ID signature, and Apple notarization to validate.
@@ -46,9 +48,9 @@ The menu-bar panel currently provides:
 
 ## Distribution artifact status
 
-`dist/DayDrop-1.0.2.dmg` is the current 2026-08-12 distribution artifact. It contains the universal `DayDrop.app` and an `/Applications` installation shortcut. The app and DMG are timestamped with the installed Developer ID identity; Apple notarization returned `Accepted`, the ticket is stapled, and Gatekeeper reports `Notarized Developer ID`. Its SHA-256 is `99ba88fc5d27b43df71890795ca592231a398e2c907d9607832ecf45fd8e9767`. Browser, permission, login-item, notification, broader visual, minimum-OS, and performance acceptance remain separate release gates.
+`dist/DayDrop-1.1.1.dmg` is the current 2026-08-14 distribution artifact. It contains the universal `DayDrop.app` and an `/Applications` installation shortcut. The app and DMG are timestamped with the installed Developer ID identity; Apple notarization submission `dcb34325-26b6-4269-a52c-eeab18884b8e` returned `Accepted` with no reported issues, the ticket is stapled, and Gatekeeper reports `Notarized Developer ID`. Its SHA-256 is `0c587e4af72dd2a2c3c69a4d71901a4277de15aa89e6f72da796ae6809cf7fa4`. This published artifact still uses the five-second quiet window; the current unreleased source uses two seconds. Browser, permission, login-item, notification, recursive-index UI, broader visual, minimum-OS, and large-tree performance acceptance remain separate release gates.
 
-Version 1.0.2 (build 3) adds in-app version display and Sparkle updates. `npm run release:mac` generates the notarized DMG, signed appcast, website checksum, and current-version homepage content, but intentionally does not deploy. `npm run appcast:mac` can regenerate the website release content for an already notarized artifact. The Sparkle private key is stored in the local login Keychain under `com.liuyuhang.DayDrop`; only the public key is embedded in the app.
+Version 1.1.1 (build 6) retains the recursive metadata-only Downloads index and unified file/history query from 1.1.0, and fixes managed-folder identity so automatic organization safely resumes after a system restart. `npm run release:mac` generates the notarized DMG, signed appcast, website checksum, and current-version homepage content, but intentionally does not deploy. `npm run appcast:mac` can regenerate the website release content for an already notarized artifact. The Sparkle private key is stored in the local login Keychain under `com.liuyuhang.DayDrop`; only the public key is embedded in the app.
 
 The selected app-icon master is `Design/SelectedIcon/DayDrop-AppIcon-Source-1254.png`. Xcode consumes the complete macOS icon set under `DayDrop/Resources/Assets.xcassets/AppIcon.appiconset/`.
 
@@ -56,15 +58,15 @@ Set and verify the intended version first. This updates `project.yml`,
 `package.json`, `package-lock.json`, and the generated Xcode project together:
 
 ```sh
-npm run version:set -- 1.0.3 4
-npm run version:check -- --version 1.0.3 --build 4
+npm run version:set -- <next-x.y.z> <next-build>
+npm run version:check -- --version <next-x.y.z> --build <next-build>
 ```
 
 Then create that exact Developer ID distribution using the App Store Connect
 `.p8` key configured by the local LiveBy release workflow:
 
 ```sh
-npm run release:mac -- --version 1.0.3 --build 4
+npm run release:mac -- --version <next-x.y.z> --build <next-build>
 ```
 
 Override `NOTARY_KEY`, `NOTARY_KEY_ID`, and `NOTARY_ISSUER` when using another
@@ -72,7 +74,7 @@ API key. If polling is interrupted after upload, resume the same immutable DMG
 without rebuilding or submitting again:
 
 ```sh
-SUBMISSION_ID=<submission-uuid> npm run release:mac -- --version 1.0.3 --build 4
+SUBMISSION_ID=<submission-uuid> npm run release:mac -- --version <next-x.y.z> --build <next-build>
 ```
 
 Release parameters are mandatory and fail closed if they disagree with a source
