@@ -36,6 +36,8 @@ struct DayDropApp: App {
 final class DayDropAppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
     private var isShowingDeepOrganizationConfirmation = false
+    private var hasCompletedStartup = false
+    private var pendingExternalActions: Set<DayDropExternalAction> = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !DayDropRuntime.isRunningUnitTests else { return }
@@ -65,6 +67,8 @@ final class DayDropAppDelegate: NSObject, NSApplicationDelegate {
 
         Task {
             await controller.start()
+            hasCompletedStartup = true
+            handlePendingExternalActions(using: controller)
             if !controller.onboardingCompleted {
                 presentOnboarding(
                     controller: controller,
@@ -74,9 +78,41 @@ final class DayDropAppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func application(_ application: NSApplication, open urls: [URL]) {
+        let actions = urls.compactMap(DayDropExternalAction.init(url:))
+        guard !actions.isEmpty else { return }
+
+        if hasCompletedStartup {
+            actions.forEach { handleExternalAction($0, using: .shared) }
+        } else {
+            pendingExternalActions.formUnion(actions)
+        }
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         guard !DayDropRuntime.isRunningUnitTests else { return }
         DayDropController.shared.stop()
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        guard !DayDropRuntime.isRunningUnitTests else { return }
+        DayDropController.shared.refreshForNowIntegrationStatus()
+    }
+
+    private func handlePendingExternalActions(using controller: DayDropController) {
+        let actions = pendingExternalActions
+        pendingExternalActions.removeAll()
+        actions.forEach { handleExternalAction($0, using: controller) }
+    }
+
+    private func handleExternalAction(
+        _ action: DayDropExternalAction,
+        using controller: DayDropController
+    ) {
+        switch action {
+        case .openTodayFolder:
+            controller.openTodayFolder()
+        }
     }
 
     private func presentOnboarding(

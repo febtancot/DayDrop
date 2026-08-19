@@ -37,6 +37,7 @@ struct TodayFileItem: Identifiable, Equatable, Sendable {
     let id: String
     let name: String
     let completedAt: Date
+    let fileSystemIdentity: String
 }
 
 enum ArchiveTargetOwnershipDecision: Equatable {
@@ -109,6 +110,7 @@ final class DayDropController: ObservableObject {
     @Published private(set) var statusMessage: String?
     @Published private(set) var isShowingRecentActivity = false
     @Published private(set) var isShowingSettings = false
+    @Published private(set) var forNowIntegrationAvailability: ForNowIntegrationAvailability = .notInstalled
 
     private enum DefaultsKey {
         static let onboardingCompleted = "DayDrop.OnboardingCompleted"
@@ -232,6 +234,8 @@ final class DayDropController: ObservableObject {
         guard !hasStarted else { return }
         hasStarted = true
 
+        refreshForNowIntegrationStatus()
+
         if let metadataStore, let historyStore {
             do {
                 let legacyRecords = await metadataStore.loadOperationRecords()
@@ -279,6 +283,27 @@ final class DayDropController: ObservableObject {
             startRootMonitor()
         }
         refreshTodayFilesNow()
+    }
+
+    func refreshForNowIntegrationStatus() {
+        let applicationURL = NSWorkspace.shared.urlForApplication(
+            withBundleIdentifier: ForNowIntegrationContract.bundleIdentifier
+        )
+        let bundle = applicationURL.flatMap(Bundle.init(url:))
+        let capabilityVersion = (bundle?.object(
+            forInfoDictionaryKey: ForNowIntegrationContract.externalFileImportInfoKey
+        ) as? NSNumber)?.intValue
+
+        forNowIntegrationAvailability = ForNowIntegrationContract.availability(
+            resolvedApplicationURL: applicationURL,
+            resolvedBundleIdentifier: bundle?.bundleIdentifier,
+            externalFileImportVersion: capabilityVersion
+        )
+    }
+
+    var isForNowIntegrationReady: Bool {
+        if case .ready = forNowIntegrationAvailability { return true }
+        return false
     }
 
     func stop() {
@@ -568,6 +593,41 @@ final class DayDropController: ObservableObject {
         }
     }
 
+    func canAddTodayFileToForNow(_ file: TodayFileItem) -> Bool {
+        guard isForNowIntegrationReady, let downloadsURL, hasFolderAccess else { return false }
+        return TodayFileLocationResolver().existingItemURL(
+            for: file,
+            in: downloadsURL
+        ) != nil
+    }
+
+    func addTodayFileToForNow(_ file: TodayFileItem) {
+        guard let downloadsURL, hasFolderAccess,
+              let url = TodayFileLocationResolver().existingItemURL(
+                  for: file,
+                  in: downloadsURL
+              )
+        else {
+            statusMessage = "该今日下载文件已移动、删除或被替换，无法添加到\(ForNowIntegrationContract.displayName)。"
+            return
+        }
+        sendFileToForNow(url, displayName: file.name)
+    }
+
+    func revealTodayFile(_ file: TodayFileItem) {
+        guard let downloadsURL, hasFolderAccess,
+              let url = TodayFileLocationResolver().existingItemURL(
+                  for: file,
+                  in: downloadsURL
+              )
+        else {
+            statusMessage = "该今日下载文件已移动、删除或被替换。"
+            refreshTodayFilesNow()
+            return
+        }
+        NSWorkspace.shared.activateFileViewerSelecting([url])
+    }
+
     func showOnboarding() {
         onShowOnboarding?()
     }
@@ -631,30 +691,19 @@ final class DayDropController: ObservableObject {
     }
 
     func revealIndexedFile(_ file: IndexedDownloadFile) {
-        guard let downloadsURL, hasFolderAccess,
-              ManagedDayFolder.isValidRelativePath(file.relativePath)
-        else {
+        guard let downloadsURL, hasFolderAccess else {
             statusMessage = "请先重新授权“下载”文件夹。"
             return
         }
 
-        let components = file.relativePath.split(separator: "/").map(String.init)
-        var candidate = downloadsURL
-        var hasSafeParents = true
-        for component in components.dropLast() {
-            candidate.appendPathComponent(component, isDirectory: true)
-            if FileSystemIdentity.directoryIdentifier(at: candidate) == nil {
-                hasSafeParents = false
-                break
-            }
+        let resolver = IndexedDownloadFileLocationResolver()
+        if let existingURL = resolver.existingItemURL(for: file, in: downloadsURL) {
+            NSWorkspace.shared.activateFileViewerSelecting([existingURL])
+            return
         }
-        if hasSafeParents, let fileName = components.last {
-            candidate.appendPathComponent(fileName, isDirectory: file.isPackage)
-        }
-        candidate = candidate.standardizedFileURL
-        if hasSafeParents,
-           FileSystemIdentity.itemIdentifier(at: candidate) == file.fileSystemIdentity {
-            NSWorkspace.shared.activateFileViewerSelecting([candidate])
+
+        guard let candidate = resolver.recordedItemURL(for: file, in: downloadsURL) else {
+            statusMessage = "索引路径不在当前授权的“下载”文件夹内。"
             return
         }
 
@@ -669,6 +718,27 @@ final class DayDropController: ObservableObject {
             parent.deleteLastPathComponent()
         }
         statusMessage = "文件及其最后记录位置已不存在。"
+    }
+
+    func canAddIndexedFileToForNow(_ file: IndexedDownloadFile) -> Bool {
+        guard isForNowIntegrationReady, let downloadsURL, hasFolderAccess else { return false }
+        return IndexedDownloadFileLocationResolver().existingItemURL(
+            for: file,
+            in: downloadsURL
+        ) != nil
+    }
+
+    func addIndexedFileToForNow(_ file: IndexedDownloadFile) {
+        guard let downloadsURL, hasFolderAccess,
+              let url = IndexedDownloadFileLocationResolver().existingItemURL(
+                  for: file,
+                  in: downloadsURL
+              )
+        else {
+            statusMessage = "该下载记录对应的文件已移动、删除或被替换，无法添加到\(ForNowIntegrationContract.displayName)。"
+            return
+        }
+        sendFileToForNow(url, displayName: file.fileName)
     }
 
     func updateHistorySearchText(_ value: String) {
@@ -756,6 +826,60 @@ final class DayDropController: ObservableObject {
         case .openRecordedDirectory(let url):
             NSWorkspace.shared.open(url)
             statusMessage = "记录中的文件可能已移动或删除，已打开其记录位置。"
+        }
+    }
+
+    func canAddHistoryRecordToForNow(_ record: OperationRecord) -> Bool {
+        guard isForNowIntegrationReady, let downloadsURL, hasFolderAccess else { return false }
+        return HistoryRecordLocationResolver().existingItemURL(
+            record: record,
+            in: downloadsURL
+        ) != nil
+    }
+
+    func addHistoryRecordToForNow(_ record: OperationRecord) {
+        guard let downloadsURL, hasFolderAccess,
+              let url = HistoryRecordLocationResolver().existingItemURL(
+                  record: record,
+                  in: downloadsURL
+              )
+        else {
+            statusMessage = "该整理记录对应的文件已移动或删除，无法添加到\(ForNowIntegrationContract.displayName)。"
+            return
+        }
+        sendFileToForNow(url, displayName: record.fileName)
+    }
+
+    private func sendFileToForNow(_ url: URL, displayName: String) {
+        refreshForNowIntegrationStatus()
+        guard case .ready(let applicationURL) = forNowIntegrationAvailability else {
+            statusMessage = "未检测到兼容的\(ForNowIntegrationContract.displayName)，请先安装或更新\(ForNowIntegrationContract.displayName)。"
+            return
+        }
+        guard let fileURL = ForNowIntegrationContract.normalizedFileURLs([url]).first,
+              FileSystemIdentity.itemIdentifier(at: fileURL) != nil
+        else {
+            statusMessage = "文件已不存在或当前路径不可用，无法添加到\(ForNowIntegrationContract.displayName)。"
+            return
+        }
+
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = false
+        configuration.addsToRecentItems = false
+        configuration.allowsRunningApplicationSubstitution = false
+        statusMessage = "正在将“\(displayName)”添加到\(ForNowIntegrationContract.displayName)…"
+        NSWorkspace.shared.open(
+            [fileURL],
+            withApplicationAt: applicationURL,
+            configuration: configuration
+        ) { [weak self] _, error in
+            Task { @MainActor in
+                if let error {
+                    self?.statusMessage = "无法添加到\(ForNowIntegrationContract.displayName)：\(error.localizedDescription)"
+                } else {
+                    self?.statusMessage = "已将“\(displayName)”发送到\(ForNowIntegrationContract.displayName)。"
+                }
+            }
         }
     }
 
@@ -887,7 +1011,8 @@ final class DayDropController: ObservableObject {
             guard let values = try? url.resourceValues(forKeys: Set(keys)),
                   values.isRegularFile == true,
                   values.isHidden != true,
-                  !url.lastPathComponent.hasPrefix(".")
+                  !url.lastPathComponent.hasPrefix("."),
+                  let fileSystemIdentity = FileSystemIdentity.itemIdentifier(at: url)
             else {
                 return nil
             }
@@ -901,7 +1026,8 @@ final class DayDropController: ObservableObject {
             return TodayFileItem(
                 id: standardizedPath,
                 name: url.lastPathComponent,
-                completedAt: completedAt
+                completedAt: completedAt,
+                fileSystemIdentity: fileSystemIdentity
             )
         }.sorted { lhs, rhs in
             if lhs.completedAt == rhs.completedAt {

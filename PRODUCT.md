@@ -34,11 +34,15 @@ DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads 
 - Double-clicking a history record reveals the current file in Finder. If the item has since moved or been deleted, DayDrop opens the closest still-existing recorded directory and explains the fallback.
 - Deterministic file-type categories based only on file metadata (`UTType` and extension). The first version does not inspect file contents or support user-defined tags.
 - A Settings destination for login launch, completion notifications, automatic update checks, Downloads authorization, version information, and reopening the welcome/setup page.
+- A capability-gated 搁这儿-ForNow integration on current Today rows and file-query records. DayDrop only offers item actions when Launch Services finds `com.fornow.app` and that bundle declares the supported external-file-import contract.
+- A dedicated **扩展功能** Settings tab for the 搁这儿-ForNow product summary, availability state, additional connected capabilities, permission boundary, and product-homepage access.
 - Manual and daily automatic checks for signed, notarized updates from the official HTTPS website; update checks never upload file names or file contents.
 
 ## Current interaction model
 
 - The **今日下载** module is both a status surface and the Finder entry point for today's archive. Its title, empty state, and populated list area all open the same folder.
+- Companion apps can request that same domain action through `daydrop://open-today-folder`. The URL does not expose a filesystem path or bypass Downloads authorization, ownership checks, or managed-folder persistence.
+- When a compatible 搁这儿-ForNow build is installed, right-clicking an existing row under **今日下载**, **下载文件**, or **整理记录** offers **添加到搁这儿-ForNow**. DayDrop resolves the current item within the authorized Downloads root, refuses stale or missing records, and sends the file through the system open-document route without reading or writing the receiver's Application Support data.
 - If today's archive folder does not yet exist, the open action creates it through the normal safe archive-preparation flow, writes the full-date ownership marker, persists its managed-folder identity, refreshes the today monitor, and then opens it.
 - Frequently used login-launch and notification settings remain visible as compact controls in the main panel and are mirrored in the full Settings page. Both surfaces call the same runtime methods rather than maintaining independent UI-only state.
 - The welcome/setup page opens automatically before first-run completion and can later be reopened from **设置 → 帮助 → 重新打开欢迎页面**. Reopening it does not erase existing authorization or automatically opt into organizing existing files.

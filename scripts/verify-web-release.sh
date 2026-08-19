@@ -57,6 +57,14 @@ grep -F "下载 DayDrop $project_version" "$homepage" >/dev/null || {
     print -u2 "错误：首页主下载按钮没有展示 $project_version。"
     exit 1
 }
+grep -F 'id="connected-apps"' "$homepage" >/dev/null || {
+    print -u2 "错误：首页缺少关联应用介绍区。"
+    exit 1
+}
+grep -F 'href="https://fornow.liveby.app"' "$homepage" >/dev/null || {
+    print -u2 "错误：首页缺少搁这儿-ForNow 官网入口。"
+    exit 1
+}
 
 expected_sha=$(awk 'NR == 1 { print $1 }' "$checksum_file")
 actual_sha=$(shasum -a 256 "$dmg" | awk '{ print $1 }')
@@ -116,6 +124,14 @@ if [[ -n "$base_url" ]]; then
     }
     grep -F "/downloads/$dmg_name" "$remote_homepage" >/dev/null || {
         print -u2 "错误：$base_url 首页没有链接 $dmg_name。"
+        exit 1
+    }
+    grep -F 'id="connected-apps"' "$remote_homepage" >/dev/null || {
+        print -u2 "错误：$base_url 首页缺少关联应用介绍区。"
+        exit 1
+    }
+    grep -F 'href="https://fornow.liveby.app"' "$remote_homepage" >/dev/null || {
+        print -u2 "错误：$base_url 首页缺少搁这儿-ForNow 官网入口。"
         exit 1
     }
     remote_feed_version=$(xmllint --xpath \

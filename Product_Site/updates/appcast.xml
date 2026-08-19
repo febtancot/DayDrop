@@ -6,6 +6,20 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>DayDrop</title>
         <item>
+            <title>1.2.0</title>
+            <pubDate>Wed, 19 Aug 2026 14:22:44 +0800</pubDate>
+            <link>https://daydrop.liveby.app/</link>
+            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#changelog</sparkle:fullReleaseNotesLink>
+            <sparkle:version>8</sparkle:version>
+            <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://daydrop.liveby.app/downloads/DayDrop-1.2.0.dmg" length="5129550" type="application/octet-stream" sparkle:edSignature="ff0kOFJvxs+y3KRGD7xKgmQxXMJD/eMJgI6UMXubXcdS6j8VpxFS5MG76R4ufuanCFkr6EyIfjoSISC0XaU6Bg=="/>
+            <sparkle:deltas>
+                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop8-7.delta" sparkle:deltaFrom="7" length="425994" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="Eg2oERkZH5yt/JhsQwGbtlZhYI2Smt1zXocmNZwzRRV5EIzswrF4ZkEvmDWK7RSn+nd8IpHABOw5RY/YiB+GBQ=="/>
+                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop8-5.delta" sparkle:deltaFrom="5" length="598774" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="UZqaq3Iq66NG3OMeWXQFD4zBi7AsFcDMMrJbq35pWvdq23hwfkuKR15odh6h6TKGvr8VuCNK0ilomtot98UWBw=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>1.1.1</title>
             <pubDate>Fri, 14 Aug 2026 11:24:59 +0800</pubDate>
             <link>https://daydrop.liveby.app/</link>
@@ -36,6 +50,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: S3IA6g95mWYhZVHd+rhNpdODM/+tqAoaJrioC5DfCCFg9gojTt0QkMho/yeUrb3xHb8UJ56E4vjsJfU/wKS5Bw==
-length: 3519
+edSignature: oDO8ssV7l01Txht9fPOD3iG1I+e8IeVlgfd9jv41Oxc/de9IklnIZBYmW9J7tzuSyNj3JmliJ+ugb1U8yY39AA==
+length: 5063
 -->

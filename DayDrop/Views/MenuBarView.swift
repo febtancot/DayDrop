@@ -176,7 +176,13 @@ struct MenuBarView: View {
                 ScrollView {
                     LazyVStack(spacing: 0) {
                         ForEach(sortedTodayFiles, id: \.id) { file in
-                            TodayFileRow(file: file)
+                            TodayFileRow(
+                                file: file,
+                                showsForNowAction: controller.isForNowIntegrationReady,
+                                canAddToForNow: { controller.canAddTodayFileToForNow(file) },
+                                onAddToForNow: { controller.addTodayFileToForNow(file) },
+                                onRevealInFinder: { controller.revealTodayFile(file) }
+                            )
 
                             if file.id != sortedTodayFiles.last?.id {
                                 Divider()
@@ -272,6 +278,10 @@ struct MenuBarView: View {
 
 private struct TodayFileRow: View {
     let file: TodayFileItem
+    let showsForNowAction: Bool
+    let canAddToForNow: () -> Bool
+    let onAddToForNow: () -> Void
+    let onRevealInFinder: () -> Void
 
     var body: some View {
         HStack(spacing: 9) {
@@ -295,9 +305,46 @@ private struct TodayFileRow: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
         .contentShape(Rectangle())
+        .contextMenu {
+            if showsForNowAction {
+                Button(action: onAddToForNow) {
+                    Label(
+                        "添加到\(ForNowIntegrationContract.displayName)",
+                        systemImage: "tray.and.arrow.down"
+                    )
+                }
+                .disabled(!canAddToForNow())
+                Divider()
+            }
+            Button(action: onRevealInFinder) {
+                Label("在访达中显示", systemImage: "folder")
+            }
+        }
         .help(file.name)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(file.name)，完成于 \(file.completedAt.formatted(date: .omitted, time: .shortened))")
+        .accessibilityAction(named: Text("在访达中显示"), onRevealInFinder)
+        .todayForNowAccessibilityAction(
+            isAvailable: showsForNowAction,
+            action: onAddToForNow
+        )
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func todayForNowAccessibilityAction(
+        isAvailable: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        if isAvailable {
+            accessibilityAction(
+                named: Text("添加到\(ForNowIntegrationContract.displayName)"),
+                action
+            )
+        } else {
+            self
+        }
     }
 }
 

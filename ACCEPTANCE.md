@@ -20,6 +20,18 @@ This matrix separates deterministic automated evidence from signed-app and real-
 | AC-14 | Denied folder permission cannot be bypassed | Bookmark/entitlement checks; signed denial flow required | Automated boundary pass; manual pending |
 | AC-15 | File organization, history, and settings work offline; update checks fail safely without affecting organization | Network-disabled run and updater failure-isolation check required | Architectural separation pass; manual pending |
 
+## 搁这儿-ForNow integration
+
+| ID | Acceptance criterion | Evidence | Status |
+| --- | --- | --- | --- |
+| FN-01 | DayDrop distinguishes 搁这儿-ForNow missing, installed-but-incompatible, and ready states | Capability-contract unit tests using bundle id plus `ForNowExternalFileImportVersion` | Automated pass |
+| FN-02 | Existing rows under **今日下载**, **下载文件**, and **整理记录** show **添加到搁这儿-ForNow** in their DayDrop context menu only when a compatible receiver exists | SwiftUI source/build audit; installed menu interaction required | Static integration pass; manual pending |
+| FN-03 | A Today row still resolves to the same filesystem identity inside the authorized Downloads root immediately before the action | Current/stale/out-of-root/symlink resolver tests | Automated pass |
+| FN-04 | Indexed rows resolve only the same current filesystem identity inside the authorized Downloads root | Current/stale/unavailable/symlink-escape resolver tests | Automated pass |
+| FN-05 | History rows send only an existing recorded item and never substitute the nearest surviving directory | History resolver file/missing/out-of-root/symlink tests | Automated pass |
+| FN-06 | 搁这儿-ForNow copies the item, applies its existing SHA-256 duplicate rules, reports the result, and opens the panel | Receiver contract tests plus existing `StashStore` tests; live DayDrop-menu-to-panel and persisted-restart check required | Automated component pass; manual end-to-end pending |
+| FN-07 | Settings provides an **扩展功能** tab with source-faithful product description, connection state, additional connected capabilities, permission boundary, and the canonical homepage | Contract test, SwiftUI source/build audit, and installed visual inspection required | Automated/static pass; visual pending |
+
 ## History, classification, query, and export
 
 | ID | Acceptance criterion | Evidence | Status |

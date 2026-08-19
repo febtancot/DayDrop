@@ -49,6 +49,19 @@ struct HistoryRecordLocationResolver {
         return nil
     }
 
+    /// Returns only the recorded item itself. Unlike `resolve`, this never
+    /// falls back to a parent directory, so callers cannot accidentally send
+    /// an unrelated folder when the recorded file has moved or been deleted.
+    func existingItemURL(
+        record: OperationRecord,
+        in rootURL: URL
+    ) -> URL? {
+        candidateURLs(for: record, in: rootURL).first { candidate in
+            fileManager.fileExists(atPath: candidate.path)
+                && FileSystemIdentity.itemIdentifier(at: candidate) != nil
+        }
+    }
+
     private func candidateURLs(for record: OperationRecord, in rootURL: URL) -> [URL] {
         let paths = record.succeeded
             ? [record.destinationPath, record.sourcePath]
@@ -81,4 +94,3 @@ struct HistoryRecordLocationResolver {
         return candidateComponents.starts(with: rootComponents)
     }
 }
-

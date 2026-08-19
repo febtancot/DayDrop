@@ -49,6 +49,27 @@ final class HistoryRecordLocationResolverTests: XCTestCase {
             resolution,
             .openRecordedDirectory(destinationFolder.standardizedFileURL)
         )
+        XCTAssertNil(
+            HistoryRecordLocationResolver().existingItemURL(record: record, in: root)
+        )
+    }
+
+    func testExistingItemURLReturnsFileWithoutDirectoryFallback() throws {
+        let root = try makeRoot()
+        let destinationFolder = root.appendingPathComponent("Day 2026-08-13", isDirectory: true)
+        try FileManager.default.createDirectory(at: destinationFolder, withIntermediateDirectories: true)
+        let destination = destinationFolder.appendingPathComponent("report.pdf")
+        try Data("report".utf8).write(to: destination)
+        let record = makeRecord(
+            source: root.appendingPathComponent("report.pdf"),
+            destination: destination,
+            succeeded: true
+        )
+
+        XCTAssertEqual(
+            HistoryRecordLocationResolver().existingItemURL(record: record, in: root),
+            destination.standardizedFileURL
+        )
     }
 
     func testRelativeLegacyPathResolvesWithinAuthorizedRoot() throws {

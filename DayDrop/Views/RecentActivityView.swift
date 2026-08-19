@@ -80,7 +80,9 @@ struct RecentActivityView: View {
             case .files:
                 indexedFileFilters
                 Label(
-                    "只读索引整个下载目录；暂停自动整理不会暂停索引。",
+                    controller.isForNowIntegrationReady
+                        ? "双击在访达中显示；右键可添加到\(ForNowIntegrationContract.displayName)。"
+                        : "只读索引整个下载目录；暂停自动整理不会暂停索引。",
                     systemImage: "magnifyingglass.circle"
                 )
                 .font(.caption2)
@@ -88,11 +90,25 @@ struct RecentActivityView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             case .operations:
                 historyFilters
-                Label("双击任一记录可在访达中显示文件", systemImage: "cursorarrow.click.2")
+                Label(
+                    controller.isForNowIntegrationReady
+                        ? "双击在访达中显示；右键可添加到\(ForNowIntegrationContract.displayName)。"
+                        : "双击任一记录可在访达中显示文件",
+                    systemImage: "cursorarrow.click.2"
+                )
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityHidden(true)
+            }
+
+            if let statusMessage = controller.statusMessage, !statusMessage.isEmpty {
+                Label(statusMessage, systemImage: "info.circle")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityLabel("状态：\(statusMessage)")
             }
         }
         .padding(.horizontal, 14)
@@ -253,9 +269,13 @@ struct RecentActivityView: View {
             ScrollView {
                 LazyVStack(spacing: 10) {
                     ForEach(controller.indexedFiles, id: \.id) { file in
-                        IndexedFileCard(file: file) {
-                            controller.revealIndexedFile(file)
-                        }
+                        IndexedFileCard(
+                            file: file,
+                            showsForNowAction: controller.isForNowIntegrationReady,
+                            canAddToForNow: { controller.canAddIndexedFileToForNow(file) },
+                            onRevealInFinder: { controller.revealIndexedFile(file) },
+                            onAddToForNow: { controller.addIndexedFileToForNow(file) }
+                        )
                         .onAppear {
                             if file.id == controller.indexedFiles.last?.id {
                                 controller.loadMoreIndexedFiles()
@@ -289,9 +309,13 @@ struct RecentActivityView: View {
             ScrollView {
                 LazyVStack(spacing: 10) {
                     ForEach(controller.historyOperations, id: \.id) { record in
-                        OperationRecordCard(record: record) {
-                            controller.revealHistoryRecord(record)
-                        }
+                        OperationRecordCard(
+                            record: record,
+                            showsForNowAction: controller.isForNowIntegrationReady,
+                            canAddToForNow: { controller.canAddHistoryRecordToForNow(record) },
+                            onRevealInFinder: { controller.revealHistoryRecord(record) },
+                            onAddToForNow: { controller.addHistoryRecordToForNow(record) }
+                        )
                         .onAppear {
                             if record.id == controller.historyOperations.last?.id {
                                 controller.loadMoreHistory()
@@ -381,7 +405,10 @@ struct RecentActivityView: View {
 
 private struct IndexedFileCard: View {
     let file: IndexedDownloadFile
+    let showsForNowAction: Bool
+    let canAddToForNow: () -> Bool
     let onRevealInFinder: () -> Void
+    let onAddToForNow: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
@@ -428,17 +455,39 @@ private struct IndexedFileCard: View {
         .background(Color.secondary.opacity(0.065), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .contentShape(Rectangle())
         .simultaneousGesture(TapGesture(count: 2).onEnded(onRevealInFinder))
-        .help("双击在访达中显示文件或最后记录位置")
+        .contextMenu {
+            if showsForNowAction {
+                Button(action: onAddToForNow) {
+                    Label(
+                        "添加到\(ForNowIntegrationContract.displayName)",
+                        systemImage: "tray.and.arrow.down"
+                    )
+                }
+                .disabled(!canAddToForNow())
+                Divider()
+            }
+            Button(action: onRevealInFinder) {
+                Label("在访达中显示", systemImage: "folder")
+            }
+        }
+        .help("双击在访达中显示；右键打开更多操作")
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(file.fileName)，\(file.fileCategory.displayName)，\(file.isPresent ? "当前存在" : "已移出或删除")")
         .accessibilityHint("双击或执行“在访达中显示”可打开文件位置")
         .accessibilityAction(named: Text("在访达中显示"), onRevealInFinder)
+        .forNowAccessibilityAction(
+            isAvailable: showsForNowAction,
+            action: onAddToForNow
+        )
     }
 }
 
 private struct OperationRecordCard: View {
     let record: OperationRecord
+    let showsForNowAction: Bool
+    let canAddToForNow: () -> Bool
     let onRevealInFinder: () -> Void
+    let onAddToForNow: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -484,11 +533,47 @@ private struct OperationRecordCard: View {
         .background(Color.secondary.opacity(0.065), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .contentShape(Rectangle())
         .simultaneousGesture(TapGesture(count: 2).onEnded(onRevealInFinder))
-        .help("双击在访达中显示文件")
+        .contextMenu {
+            if showsForNowAction {
+                Button(action: onAddToForNow) {
+                    Label(
+                        "添加到\(ForNowIntegrationContract.displayName)",
+                        systemImage: "tray.and.arrow.down"
+                    )
+                }
+                .disabled(!canAddToForNow())
+                Divider()
+            }
+            Button(action: onRevealInFinder) {
+                Label("在访达中显示", systemImage: "folder")
+            }
+        }
+        .help("双击在访达中显示；右键打开更多操作")
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(record.fileName)，\(record.fileCategory.displayName)，\(record.succeeded ? "整理成功" : "整理失败")")
         .accessibilityHint("双击或执行“在访达中显示”可打开文件所在位置")
         .accessibilityAction(named: Text("在访达中显示"), onRevealInFinder)
+        .forNowAccessibilityAction(
+            isAvailable: showsForNowAction,
+            action: onAddToForNow
+        )
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func forNowAccessibilityAction(
+        isAvailable: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        if isAvailable {
+            accessibilityAction(
+                named: Text("添加到\(ForNowIntegrationContract.displayName)"),
+                action
+            )
+        } else {
+            self
+        }
     }
 }
 

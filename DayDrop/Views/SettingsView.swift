@@ -12,7 +12,7 @@ struct SettingsView: View {
         VStack(spacing: 0) {
             navigationBar
             Divider()
-            settingsContent
+            settingsTabs
         }
         .frame(width: 380, height: 520)
         .background(.background)
@@ -41,7 +41,22 @@ struct SettingsView: View {
         .padding(.vertical, 13)
     }
 
-    private var settingsContent: some View {
+    private var settingsTabs: some View {
+        TabView {
+            generalSettings
+                .tabItem { Label("通用", systemImage: "gearshape") }
+
+            forNowSettings
+                .tabItem {
+                    Label(
+                        "扩展功能",
+                        systemImage: "puzzlepiece.extension"
+                    )
+                }
+        }
+    }
+
+    private var generalSettings: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 SettingsSection(title: "整理工具") {
@@ -192,6 +207,179 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
         }
+    }
+
+    private var forNowSettings: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SettingsSection(title: "产品介绍") {
+                    HStack(alignment: .top, spacing: 11) {
+                        Image(systemName: "tray.and.arrow.down.fill")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundStyle(Color.accentColor)
+                            .frame(width: 24)
+                            .accessibilityHidden(true)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(ForNowIntegrationContract.displayName)
+                                .font(.subheadline.weight(.semibold))
+                            Text("\(ForNowIntegrationContract.displayName) 是一款 macOS 本地暂存工具。文件、图片、文字、链接和录音都可先放入面板，需要时再拖出到其他应用。")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .combine)
+                }
+
+                SettingsSection(title: "连接状态") {
+                    ForNowIntegrationStatusRow(
+                        availability: controller.forNowIntegrationAvailability
+                    )
+
+                    Divider()
+
+                    Button("重新检测") {
+                        controller.refreshForNowIntegrationStatus()
+                    }
+                    .controlSize(.small)
+                    .accessibilityHint(
+                        "重新检查是否安装了兼容版本的\(ForNowIntegrationContract.displayName)"
+                    )
+                }
+
+                SettingsSection(title: "连接搁这儿后获得的额外能力") {
+                    ForNowFeatureRow(
+                        title: "今日下载",
+                        description: "无需打开访达，可直接把当天文件暂存到\(ForNowIntegrationContract.displayName)。",
+                        systemImage: "tray.full"
+                    )
+
+                    Divider()
+
+                    ForNowFeatureRow(
+                        title: "下载文件",
+                        description: "可从文件查询结果中暂存仍在下载目录内的文件。",
+                        systemImage: "doc.text.magnifyingglass"
+                    )
+
+                    Divider()
+
+                    ForNowFeatureRow(
+                        title: "整理记录",
+                        description: "可将仍存在的原文件或整理后文件暂存，便于继续使用。",
+                        systemImage: "clock.arrow.circlepath"
+                    )
+                }
+
+                SettingsSection(title: "权限与数据") {
+                    Label(
+                        "无需安装 Finder 扩展。DayDrop 只发送经过路径和文件身份验证的本机文件；复制、去重和保存由\(ForNowIntegrationContract.displayName)完成。",
+                        systemImage: "lock.shield"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                }
+
+                SettingsSection(title: "了解与下载") {
+                    Link(destination: ForNowIntegrationContract.homepageURL) {
+                        Label("访问产品主页", systemImage: "globe")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    Text(ForNowIntegrationContract.homepageURL.absoluteString)
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+        }
+        .onAppear {
+            controller.refreshForNowIntegrationStatus()
+        }
+    }
+}
+
+private struct ForNowIntegrationStatusRow: View {
+    let availability: ForNowIntegrationAvailability
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 11) {
+            Image(systemName: systemImage)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: 22)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+                Text(description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var title: String {
+        switch availability {
+        case .notInstalled: return "未检测到\(ForNowIntegrationContract.displayName)"
+        case .updateRequired: return "\(ForNowIntegrationContract.displayName)需要更新"
+        case .ready: return "已连接\(ForNowIntegrationContract.displayName)"
+        }
+    }
+
+    private var description: String {
+        switch availability {
+        case .notInstalled:
+            return "安装兼容版本后，可从 DayDrop 的文件条目直接暂存内容。"
+        case .updateRequired:
+            return "当前版本无法接收 DayDrop 发送的文件，请先更新。"
+        case .ready:
+            return "连接正常，可从今日下载、下载文件和整理记录直接暂存文件。"
+        }
+    }
+
+    private var systemImage: String {
+        switch availability {
+        case .notInstalled: return "app.badge"
+        case .updateRequired: return "arrow.down.app"
+        case .ready: return "checkmark.circle.fill"
+        }
+    }
+}
+
+private struct ForNowFeatureRow: View {
+    let title: String
+    let description: String
+    let systemImage: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 11) {
+            Image(systemName: systemImage)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: 22)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+                Text(description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
 
