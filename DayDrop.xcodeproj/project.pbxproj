@@ -30,8 +30,10 @@
 		494B737F35FCC7619A58CA78 /* LocalMetadataStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999DB47D4B664FF26C6F03BC /* LocalMetadataStoreTests.swift */; };
 		4B30D7C49FD831CBB5841837 /* ArchivePathRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BAA36BA656F2761207C1C01 /* ArchivePathRouterTests.swift */; };
 		4ED851D3F3F5FE873C405AE2 /* ExistingFileDateResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92D97D82AE48E6D582F6AF7B /* ExistingFileDateResolverTests.swift */; };
+		5415DC3CD3DB8AF1A2A7F562 /* FinderWindowPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096584BE1103C4EE69826AC6 /* FinderWindowPlacementTests.swift */; };
 		5569A5E1EB4FEF9C9228B03C /* DayDropUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E892CCC4F3C204BCB0BE033 /* DayDropUpdater.swift */; };
 		55D7B4B8A973DA543DE7B789 /* FileFinalizationTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18EBAD37A6DABD0D05714C1 /* FileFinalizationTrackerTests.swift */; };
+		59370F68157475E34DBDB1A8 /* DayDropDisplayIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDF195FF4BFD3109175AE01 /* DayDropDisplayIdentity.swift */; };
 		5A02F5336C78155B99D14AC1 /* TodayFileLocationResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002421E433C741D3690F6297 /* TodayFileLocationResolverTests.swift */; };
 		6181820ABDFCBBED344EFD59 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7E0DDEF5E0F2A380B4791658 /* Assets.xcassets */; };
 		61D27E922BF4F88184542B84 /* IndexedDownloadFileLocationResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0700C360B3207310B5DB31F9 /* IndexedDownloadFileLocationResolverTests.swift */; };
@@ -62,6 +64,7 @@
 		DF94408837343E94876C07A5 /* HistoryRecordLocationResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EEE5913E78DEE84B5A0A548 /* HistoryRecordLocationResolverTests.swift */; };
 		E02250031F5293E412137E10 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 3FABA12B4F839149A8562376 /* Sparkle */; };
 		E1398BDE9A16EB4B1A59BD7A /* HistoryClassificationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF833300655A8A5953498DE5 /* HistoryClassificationTests.swift */; };
+		E63689B1C10C2B720F5C8480 /* FinderFolderPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA9AA3065124655D7AFAF4FB /* FinderFolderPresenter.swift */; };
 		EDA88518BA022EF8249AE4C9 /* DownloadsTreeEventMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BB837466480D8E812206C11 /* DownloadsTreeEventMonitor.swift */; };
 		EE2554D2B89DC3C4F61E961F /* DayDropApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EBE187B958AF3EFFFF898E0 /* DayDropApp.swift */; };
 		F2B9937DC3673F991430F867 /* DownloadsIndexStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62485E4F0BB549782C6F2E43 /* DownloadsIndexStoreTests.swift */; };
@@ -85,6 +88,7 @@
 		03CC1AE9DDC1E55313ABC7B7 /* DayDropTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DayDropTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0700C360B3207310B5DB31F9 /* IndexedDownloadFileLocationResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexedDownloadFileLocationResolverTests.swift; sourceTree = "<group>"; };
 		09465DD3FE29AFFB63B5EB4D /* HistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryStore.swift; sourceTree = "<group>"; };
+		096584BE1103C4EE69826AC6 /* FinderWindowPlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderWindowPlacementTests.swift; sourceTree = "<group>"; };
 		0BAA36BA656F2761207C1C01 /* ArchivePathRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePathRouterTests.swift; sourceTree = "<group>"; };
 		0D444756A6A8B747A155784E /* DayDropCompactToggleStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropCompactToggleStyle.swift; sourceTree = "<group>"; };
 		12D6666AC221C27C80437C8A /* FileFinalizationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileFinalizationTracker.swift; sourceTree = "<group>"; };
@@ -119,6 +123,7 @@
 		8D45C66C0B802EF0CEFFF0FB /* IndexedDownloadFileLocationResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexedDownloadFileLocationResolver.swift; sourceTree = "<group>"; };
 		8EBE187B958AF3EFFFF898E0 /* DayDropApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropApp.swift; sourceTree = "<group>"; };
 		8EEE5913E78DEE84B5A0A548 /* HistoryRecordLocationResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRecordLocationResolverTests.swift; sourceTree = "<group>"; };
+		8FDF195FF4BFD3109175AE01 /* DayDropDisplayIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropDisplayIdentity.swift; sourceTree = "<group>"; };
 		9192C6D2A4FB481C6EA6C6B5 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		91C40E96A1F80C8F2B4903BE /* DayDrop.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DayDrop.entitlements; sourceTree = "<group>"; };
 		92D97D82AE48E6D582F6AF7B /* ExistingFileDateResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExistingFileDateResolverTests.swift; sourceTree = "<group>"; };
@@ -140,6 +145,7 @@
 		E12E62542054D55F0FD94AD1 /* DirectoryEventMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryEventMonitorTests.swift; sourceTree = "<group>"; };
 		E3CBCEFE1C293737B8161D75 /* DownloadsFileScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsFileScanner.swift; sourceTree = "<group>"; };
 		E9ECEFC90C6A69F30DCAF0EC /* TodayFileLocationResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayFileLocationResolver.swift; sourceTree = "<group>"; };
+		EA9AA3065124655D7AFAF4FB /* FinderFolderPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderFolderPresenter.swift; sourceTree = "<group>"; };
 		ED96B62999497C28EB76160B /* ForNowIntegrationContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForNowIntegrationContractTests.swift; sourceTree = "<group>"; };
 		F0A144CEF0A92CDEF4DD07E7 /* DownloadsIndexStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsIndexStore.swift; sourceTree = "<group>"; };
 		F4072CB9C37B298388AB8687 /* DownloadsFileScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsFileScannerTests.swift; sourceTree = "<group>"; };
@@ -281,6 +287,7 @@
 				8CE292D61DDFAEFD2D636E07 /* DownloadCandidatePolicyTests.swift */,
 				92D97D82AE48E6D582F6AF7B /* ExistingFileDateResolverTests.swift */,
 				C18EBAD37A6DABD0D05714C1 /* FileFinalizationTrackerTests.swift */,
+				096584BE1103C4EE69826AC6 /* FinderWindowPlacementTests.swift */,
 				ED96B62999497C28EB76160B /* ForNowIntegrationContractTests.swift */,
 				DF833300655A8A5953498DE5 /* HistoryClassificationTests.swift */,
 				8EEE5913E78DEE84B5A0A548 /* HistoryRecordLocationResolverTests.swift */,
@@ -308,7 +315,9 @@
 			children = (
 				8EBE187B958AF3EFFFF898E0 /* DayDropApp.swift */,
 				FDDA11243B45BDB99345C28E /* DayDropController.swift */,
+				8FDF195FF4BFD3109175AE01 /* DayDropDisplayIdentity.swift */,
 				8BE887EEDC94254773ABCB64 /* DayDropExternalAction.swift */,
+				EA9AA3065124655D7AFAF4FB /* FinderFolderPresenter.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -463,6 +472,7 @@
 				EE2554D2B89DC3C4F61E961F /* DayDropApp.swift in Sources */,
 				215D36E6F1E43C8695359B51 /* DayDropCompactToggleStyle.swift in Sources */,
 				C0F09A4904EBC691E58212C0 /* DayDropController.swift in Sources */,
+				59370F68157475E34DBDB1A8 /* DayDropDisplayIdentity.swift in Sources */,
 				8870FBF0B41139FFE5773912 /* DayDropExternalAction.swift in Sources */,
 				5569A5E1EB4FEF9C9228B03C /* DayDropUpdater.swift in Sources */,
 				34396CCFA267EDA78E9DF84E /* DirectoryEventMonitor.swift in Sources */,
@@ -475,6 +485,7 @@
 				A89681319E0BFBDE40F5C177 /* FileCandidateScanner.swift in Sources */,
 				3EB8246B31275099C05A68EA /* FileFinalizationMonitor.swift in Sources */,
 				3FDE20CF4A72A0F45418DD98 /* FileFinalizationTracker.swift in Sources */,
+				E63689B1C10C2B720F5C8480 /* FinderFolderPresenter.swift in Sources */,
 				8047BCC7EF10367402D2533E /* ForNowIntegrationContract.swift in Sources */,
 				0D81EA90AF79C87C142E3430 /* HistoryClassification.swift in Sources */,
 				69D0E259FC50CA64342CA5EE /* HistoryRecordLocationResolver.swift in Sources */,
@@ -512,6 +523,7 @@
 				3746FEECF900CC21A2D18393 /* FileCandidateScannerTests.swift in Sources */,
 				B38C6E47C1DAB456E4DFE49A /* FileFinalizationMonitorTests.swift in Sources */,
 				55D7B4B8A973DA543DE7B789 /* FileFinalizationTrackerTests.swift in Sources */,
+				5415DC3CD3DB8AF1A2A7F562 /* FinderWindowPlacementTests.swift in Sources */,
 				A678965207A622A8BA867F23 /* ForNowIntegrationContractTests.swift in Sources */,
 				E1398BDE9A16EB4B1A59BD7A /* HistoryClassificationTests.swift in Sources */,
 				DF94408837343E94876C07A5 /* HistoryRecordLocationResolverTests.swift in Sources */,

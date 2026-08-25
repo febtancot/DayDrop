@@ -37,7 +37,7 @@ For interactive permission, notification, login-item, and browser tests, open `D
 The menu-bar panel currently provides:
 
 - A clickable **今日下载** module. Clicking its title, empty state, or file-list area creates today's managed folder when needed and opens it in Finder.
-- A narrow local integration entry, `daydrop://open-today-folder`, for companion apps such as ForNow. DayDrop still owns authorization, safe folder preparation, managed-folder records, and the final Finder open.
+- A narrow local integration entry, `daydrop://open-today-folder`, for companion apps such as ForNow. Compatible requests may include a stable target-display ID so DayDrop can create the Finder window on the screen where the user clicked. DayDrop still owns authorization, safe folder preparation, managed-folder records, and the final Finder open; exact placement requires the user-authorized Finder automation permission and otherwise falls back to the standard open behavior.
 - A reciprocal **搁这儿-ForNow** action on file rows. When a compatible build is installed, existing rows in **今日下载**, **下载文件**, and **整理记录** expose **添加到搁这儿-ForNow** in their right-click menus. Missing, moved, replaced, or out-of-root files are rejected instead of falling back to a recorded directory.
 - A dedicated **扩展功能** Settings tab describing 搁这儿-ForNow, its current connection state, the additional capabilities unlocked after connection, local-data boundary, and verified product homepage `https://fornow.liveby.app`.
 - Separate manual actions for safe top-level organization and opt-in deep organization. Deep organization covers the Downloads root plus files exactly one folder level below it, warns that existing grouping may be disrupted, and requires a second destructive confirmation.

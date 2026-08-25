@@ -515,7 +515,7 @@ final class DayDropController: ObservableObject {
         NSWorkspace.shared.open(downloadsURL)
     }
 
-    func openTodayFolder() {
+    func openTodayFolder(targetDisplayID: String? = nil) {
         guard let downloadsURL, hasFolderAccess else {
             statusMessage = "请先授权“下载”文件夹。"
             return
@@ -589,7 +589,17 @@ final class DayDropController: ObservableObject {
             if preparation.wasCreated {
                 statusMessage = "已创建今日文件夹。"
             }
-            NSWorkspace.shared.open(preparation.folderURL)
+            switch FinderFolderPresenter.open(
+                preparation.folderURL,
+                targetDisplayID: targetDisplayID
+            ) {
+            case .positioned, .openedNormally:
+                break
+            case .openedWithoutRequestedPosition:
+                statusMessage = "已打开今日文件夹，但未能把访达窗口定位到点击的显示器。请检查 DayDrop 的“自动化 → 访达”权限。"
+            case .failed:
+                statusMessage = "无法在访达中打开今日文件夹。"
+            }
         }
     }
 

@@ -31,7 +31,7 @@ Index flow: start recursive FSEvents stream → recursive metadata-only baseline
 
 History flow: legacy JSON import by stable UUID → deterministic metadata-only file classification → indexed SQLite persistence → typed search/filter query → cursor pagination → bounded double-click Finder resolution inside the authorized Downloads root → optional filtered CSV/JSON export selected by the user. The unified File Query UI defaults to current indexed Downloads files and retains operation history as a separate scope.
 
-User-driven today-folder flow: today-module click → safe target preparation → ownership-policy evaluation → managed-folder persistence when newly created → today-monitor refresh → Finder open.
+User-driven today-folder flow: today-module or external URL click → optional stable target-display ID validation → safe target preparation → ownership-policy evaluation → managed-folder persistence when newly created → today-monitor refresh → Finder open. For target-aware external requests, AppKit screen geometry is converted to Finder's top-left coordinate system and a new Finder window is positioned through a user-authorized Apple event; denial or stale display identity falls back to `NSWorkspace.open`.
 
 Settings/onboarding flow: main panel → Settings → reopen welcome page. First-run onboarding is non-closable until completion; a later reopened window is closable and preserves existing authorization. Both quick toggles and Settings toggles bind to `DayDropController` runtime methods.
 

@@ -110,8 +110,8 @@ final class DayDropAppDelegate: NSObject, NSApplicationDelegate {
         using controller: DayDropController
     ) {
         switch action {
-        case .openTodayFolder:
-            controller.openTodayFolder()
+        case .openTodayFolder(let targetDisplayID):
+            controller.openTodayFolder(targetDisplayID: targetDisplayID)
         }
     }
 

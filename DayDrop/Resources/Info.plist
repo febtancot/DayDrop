@@ -43,6 +43,10 @@
     <string>Copyright © 2026 DayDrop.</string>
     <key>NSDownloadsFolderUsageDescription</key>
     <string>DayDrop 需要访问“下载”文件夹，以便在下载完成后按日期整理顶层文件。</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>DayDrop 需要控制访达，仅用于把你从外接应用打开的今日文件夹窗口放到点击的显示器。</string>
+    <key>DayDropOpenTodayFolderTargetDisplayVersion</key>
+    <integer>1</integer>
     <key>SUFeedURL</key>
     <string>https://daydrop.liveby.app/updates/appcast.xml</string>
     <key>SUEnableAutomaticChecks</key>
