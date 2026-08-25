@@ -1,6 +1,6 @@
 {
   "name": "daydrop",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "scripts": {
     "build:mac": "xcodegen generate && xcodebuild -quiet -project DayDrop.xcodeproj -scheme DayDrop -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath build/DerivedData build",

@@ -32,6 +32,15 @@ This matrix separates deterministic automated evidence from signed-app and real-
 | FN-06 | 搁这儿-ForNow copies the item, applies its existing SHA-256 duplicate rules, reports the result, and opens the panel | Receiver contract tests plus existing `StashStore` tests; live DayDrop-menu-to-panel and persisted-restart check required | Automated component pass; manual end-to-end pending |
 | FN-07 | Settings provides an **扩展功能** tab with source-faithful product description, connection state, additional connected capabilities, permission boundary, and the canonical homepage | Contract test, SwiftUI source/build audit, and installed visual inspection required | Automated/static pass; visual pending |
 
+## Target-display Finder integration
+
+| ID | Acceptance criterion | Evidence | Status |
+| --- | --- | --- | --- |
+| TD-01 | `daydrop://open-today-folder` keeps working without a display parameter and accepts only one bounded `display-id` value | URL parsing and rejection tests | Automated pass |
+| TD-02 | Display placement converts AppKit coordinates to Finder coordinates for horizontal and vertical multi-display layouts | `FinderWindowPlacementTests` geometry and AppleScript escaping coverage | Automated pass |
+| TD-03 | A valid installed-app request creates the current managed-day Finder window while preserving Downloads authorization and safe folder preparation | Actual ForNow capsule click on Mi Monitor plus Studio Display target request; WindowServer bounds checked against both screen frames | Installed current-machine pass on Mi and Studio; formal 1.2.1 package interaction pending |
+| TD-04 | A disconnected display or denied Finder automation permission falls back to standard Finder opening and reports that exact placement was not applied | Source/result-state audit; signed permission-denied and unplug/replug checks required | Automated/static boundary pass; manual pending |
+
 ## History, classification, query, and export
 
 | ID | Acceptance criterion | Evidence | Status |

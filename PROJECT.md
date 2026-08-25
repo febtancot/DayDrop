@@ -2,7 +2,7 @@
 
 ## Current status
 
-The PRD v1.1 MVP plus recursive read-only Downloads indexing, restart-stable managed-folder identity, a two-second finalization quiet window, and reliable persistent update reminders are implemented and shipped as DayDrop 1.1.1 (build 7). The release pipeline passed 109 tests, strict warnings-as-errors compilation, static analysis, universal build, Developer ID signing, Apple notarization, stapling, Gatekeeper checks, signed Appcast generation, and remote website/package consistency verification. Signed real-browser, permission-denial, login-item, notification, updater installation, index UI, broader visual, minimum-OS, and large-tree performance acceptance remain open.
+The PRD v1.1 MVP, recursive read-only Downloads indexing, restart-stable managed-folder identity, a two-second finalization quiet window, reliable persistent update reminders, and target-display Finder opening are implemented in DayDrop 1.2.1 (build 9). The release pipeline passed 129 tests, strict warnings-as-errors compilation, static analysis, universal build, Developer ID signing, Apple notarization, stapling, Gatekeeper checks, and signed Appcast generation. Production website/package verification is the remaining release step. Signed real-browser, permission-denial, login-item, notification, updater installation, index UI, broader visual, minimum-OS, and large-tree performance acceptance remain open.
 
 - Native macOS 13+ menu-bar app and first-run onboarding.
 - Security-scoped Downloads-folder authorization with no direct-path fallback.
@@ -28,9 +28,9 @@ Complete visual and signed real-Mac acceptance against the notarized distributio
 1. Native project and tested date/path core — complete.
 2. Authorization, monitoring, move/migration engine, history, and notifications — implemented.
 3. Menu-bar and first-run UI — implemented and iterated from user screenshots; systematic visual/VoiceOver/minimum-OS acceptance remains pending.
-4. Automated verification — current source passes 109 tests, strict concurrency/warnings-as-errors compilation, Release static analysis, and an `arm64` + `x86_64` universal Release build. The shipped 1.1.1 artifact includes the 2026-08-14 finalization-monitor, restart-stable managed-folder identity, and updater-reminder changes.
+4. Automated verification — current source passes 129 tests, strict concurrency/warnings-as-errors compilation, Release static analysis, and an `arm64` + `x86_64` universal Release build. The 1.2.1 artifact includes target-display Finder opening while preserving the existing authorization and safe-folder preparation flow.
 5. Development installation — `npm run mac` builds, safely replaces `/Applications/DayDrop.app`, verifies, and launches the arm64 Debug app; complete.
-6. Distribution packaging — DayDrop 1.1.1 universal Developer ID DMG, `.p8` notarization, stapling, Gatekeeper verification, signed Sparkle feed, and Cloudflare Pages publication complete; signed real-Mac interaction acceptance remains pending.
+6. Distribution packaging — DayDrop 1.2.1 universal Developer ID DMG, `.p8` notarization, stapling, Gatekeeper verification, and signed Sparkle feed complete; Cloudflare Pages publication and signed-package update installation remain pending.
 
 ## Risks and dependencies
 
@@ -52,7 +52,7 @@ Complete visual and signed real-Mac acceptance against the notarized distributio
 ## Next actions
 
 - Confirm the production bundle identifier, signing identity ownership, and distribution channel.
-- Run the remaining release acceptance against `dist/DayDrop-1.1.1.dmg`; do not substitute the ad-hoc Debug app as release evidence.
+- Run the remaining release acceptance against `dist/DayDrop-1.2.1.dmg`; do not substitute the installed Debug app as release-package evidence.
 - Run `ACCEPTANCE.md` signed-app checks in Safari, Chrome, Edge, and Firefox.
 - Perform a focused visual pass for the compact toggle states, today-module hit targets, Settings navigation, and onboarding scrolling.
 - Run a signed compatibility pass on the minimum supported macOS 13 Ventura runtime.

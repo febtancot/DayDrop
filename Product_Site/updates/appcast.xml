@@ -6,6 +6,20 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>DayDrop</title>
         <item>
+            <title>1.2.1</title>
+            <pubDate>Wed, 26 Aug 2026 00:28:05 +0800</pubDate>
+            <link>https://daydrop.liveby.app/</link>
+            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#changelog</sparkle:fullReleaseNotesLink>
+            <sparkle:version>9</sparkle:version>
+            <sparkle:shortVersionString>1.2.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://daydrop.liveby.app/downloads/DayDrop-1.2.1.dmg" length="5146727" type="application/octet-stream" sparkle:edSignature="IDaWxGBHRIXShIFIpaQm/5gXFVjQWxt52qUqPGMhcB3xAEDIP/WNf57YieEzuDyN0VM9vZwceWNx8kuvw1HYCw=="/>
+            <sparkle:deltas>
+                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop9-8.delta" sparkle:deltaFrom="8" length="287938" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="tX/+YDB/t4bF2mBUa/jKQOssA4RgCkIq4er5J2EVt035htfp3itLMcOFYy/lLSyjxBP+nu7nv0YzIj/r0xFpAQ=="/>
+                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop9-7.delta" sparkle:deltaFrom="7" length="463286" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="qq+U91nWx73otehUwqJf8XzboMQUJonRfeiIAQ6ej89wSChV/RZ4+msBt2hRaUaZcsraV6sW2W5xBaylQsJ7BA=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>1.2.0</title>
             <pubDate>Wed, 19 Aug 2026 14:22:44 +0800</pubDate>
             <link>https://daydrop.liveby.app/</link>
@@ -33,23 +47,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
                 <enclosure url="https://daydrop.liveby.app/downloads/DayDrop7-4.delta" sparkle:deltaFrom="4" length="806586" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="TYHxeblNMCCTm3XoyBFjEKXNvKqpFW7myeo87rOMZczZz8OXfB8MPKp6/4ItIM9gOeDVGf248HN1Mz8YTCpxCw=="/>
             </sparkle:deltas>
         </item>
-        <item>
-            <title>1.1.0</title>
-            <pubDate>Thu, 13 Aug 2026 18:43:32 +0800</pubDate>
-            <link>https://daydrop.liveby.app/</link>
-            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#changelog</sparkle:fullReleaseNotesLink>
-            <sparkle:version>5</sparkle:version>
-            <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://daydrop.liveby.app/downloads/DayDrop-1.1.0.dmg" length="4949095" type="application/octet-stream" sparkle:edSignature="ZZ1xMtKg/BKvNAO92QwIsKJFYdv65J7q6/Rgt04/cazy6aMwh+nHMCJf9i4SRi9EnKLo3jfQMDxfOxLGE6s9AA=="/>
-            <sparkle:deltas>
-                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop5-4.delta" sparkle:deltaFrom="4" length="701758" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="nnR+iKvPghUcrmTjFOZkMjE++Ud8228+DISOCPDSC4ez/lHzPKsuW7v0Xs+n/tgA4DWCRdgX3z1FXvO/aRSaDg=="/>
-                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop5-3.delta" sparkle:deltaFrom="3" length="704506" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="a1M39VCruRV7Kbe1DZOMlcLCvf+jyINnOCkGUnU2zwji1WumpoCs0MhIOt9Nv7tjqdTt+qRiPsGurEjB59y/BQ=="/>
-            </sparkle:deltas>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: oDO8ssV7l01Txht9fPOD3iG1I+e8IeVlgfd9jv41Oxc/de9IklnIZBYmW9J7tzuSyNj3JmliJ+ugb1U8yY39AA==
+edSignature: VaL4XMbSvCg9JRbjEOfbsHFtWypBY30yy9MzJ+D/HEfGQCvUNMBXLOLttd7HAAoY0szl108vFVuPfQzv6p1RDg==
 length: 5063
 -->

@@ -625,7 +625,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
     <a class="brand" href="#top">
       <img src="assets/daydrop-icon.png" alt="DayDrop 图标">
       DayDrop
-      <span class="ver-badge">v1.2.0</span>
+      <span class="ver-badge">v1.2.1</span>
     </a>
     <nav class="main-nav">
       <a href="#rules">归档规则</a>
@@ -641,7 +641,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
         <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
         GitHub
       </a>
-      <a class="btn btn-primary btn-sm" href="/downloads/DayDrop-1.2.0.dmg" download>
+      <a class="btn btn-primary btn-sm" href="/downloads/DayDrop-1.2.1.dmg" download>
         下载 DMG <span class="arr">→</span>
       </a>
     </div>
@@ -656,9 +656,9 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
       <h1>下载，按天归位。<span class="latin">Downloads, day by day.</span></h1>
       <p class="hero-lede">DayDrop 静静待在菜单栏，<strong>等每个下载真正完成</strong>，再把顶层文件按日期归位；同时用只读索引覆盖整个「下载」目录，让你直接存进子文件夹的文件也能随时找到，并可交给兼容的搁这儿-ForNow 暂存。</p>
       <div class="hero-ctas">
-        <a class="btn btn-primary btn-lg" href="/downloads/DayDrop-1.2.0.dmg" download>
+        <a class="btn btn-primary btn-lg" href="/downloads/DayDrop-1.2.1.dmg" download>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0 5-5m-5 5-5-5"/><path d="M4 21h16"/></svg>
-          下载 DayDrop 1.2.0
+          下载 DayDrop 1.2.1
         </a>
         <a class="btn btn-ghost btn-lg" href="https://github.com/febtancot/DayDrop" target="_blank" rel="noopener">在 GitHub 查看源码 <span class="arr">→</span></a>
       </div>
@@ -706,7 +706,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
             <div class="today-list" id="todayList" title="在访达中打开今天的归档文件夹">
               <div class="file-row">
                 <svg viewBox="0 0 24 24"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7l-5-5z"/><path d="M14 2v5h5"/></svg>
-                <span class="n">DayDrop-1.2.0.dmg</span>
+                <span class="n">DayDrop-1.2.1.dmg</span>
                 <span class="tm" data-min="2">14:30</span>
               </div>
               <div class="file-div"></div>
@@ -997,7 +997,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
     <section id="connected-apps">
       <div class="sec-label">Connected Apps</div>
       <h2 class="sec-title">让整理后的文件继续流动<a class="anchor" href="#connected-apps">#</a></h2>
-      <p class="sec-sub">DayDrop 只在本机发现兼容版本后显示连接入口。文件仍由你从具体条目发起，不会在后台自动传给其他应用。</p>
+      <p class="sec-sub">DayDrop 只在本机发现兼容版本后显示连接入口。文件仍由你从具体条目发起，不会在后台自动传给其他应用；兼容调用方还可以请求把今日文件夹窗口放到发起操作的显示器。</p>
 
       <article class="connected-card rv">
         <div class="connected-mark" aria-hidden="true">F</div>
@@ -1007,6 +1007,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
           <div class="connected-meta" aria-label="连接能力">
             <span>本机应用连接</span>
             <span>按条目手动发起</span>
+            <span>按点击屏幕定位</span>
             <span>失效文件拒绝发送</span>
           </div>
         </div>
@@ -1021,43 +1022,48 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
     <section id="changelog">
       <div class="sec-label">Release Notes</div>
       <h2 class="sec-title">更新日志<a class="anchor" href="#changelog">#</a></h2>
-      <p class="sec-sub">1.2.0 新增搁这儿-ForNow 连接、文件条目快捷动作和面向其他本机应用的今日文件夹入口。</p>
+      <p class="sec-sub">1.2.1 可把外部应用请求打开的今日文件夹窗口放到发起操作的显示器；无法取得访达自动化权限时仍会正常打开文件夹。</p>
 
       <div class="release-stack">
         <article class="release-card latest rv">
           <div class="release-head">
-            <span class="release-version">DayDrop 1.2.0</span>
-            <time class="release-date" datetime="2026-08-19">2026-08-19</time>
+            <span class="release-version">DayDrop 1.2.1</span>
+            <time class="release-date" datetime="2026-08-26">2026-08-26</time>
             <span class="release-current">当前版本</span>
-            <a class="btn btn-primary btn-sm release-download" href="/downloads/DayDrop-1.2.0.dmg" download>下载 1.2.0 <span class="arr">→</span></a>
+            <a class="btn btn-primary btn-sm release-download" href="/downloads/DayDrop-1.2.1.dmg" download>下载 1.2.1 <span class="arr">→</span></a>
           </div>
-          <p class="release-summary">把 DayDrop 的当前文件安全地交给搁这儿-ForNow，并为本机应用提供一个窄范围的今日文件夹动作。</p>
+          <p class="release-summary">从哪块屏幕发起操作，就在那块屏幕打开今日文件夹；原有授权、目录创建和安全检查保持不变。</p>
           <div class="release-grid">
             <div class="release-point">
-              <span class="mark">ForNow</span>
-              <h3>从文件条目直接暂存</h3>
-              <p>兼容的搁这儿-ForNow 已安装时，可从「今日下载」「下载文件」和「整理记录」的右键菜单添加当前文件。</p>
+              <span class="mark">Target Display</span>
+              <h3>窗口跟随发起操作的屏幕</h3>
+              <p>兼容应用可以在今日文件夹动作中附带目标显示器 ID，DayDrop 会在对应屏幕创建并居中显示访达窗口。</p>
             </div>
             <div class="release-point">
-              <span class="mark">Guard</span>
-              <h3>发送前重新确认文件</h3>
-              <p>DayDrop 会重新校验授权根目录、当前位置与文件系统身份；已移动、删除、替换或越界的记录不会被发送。</p>
+              <span class="mark">Stable ID</span>
+              <h3>显示器重连后仍可识别</h3>
+              <p>目标显示器使用稳定的 ColorSync UUID 标识；仅在无法取得 UUID 的少数环境中，才使用当前连接期的运行时 ID。</p>
             </div>
             <div class="release-point">
-              <span class="mark">Extensions</span>
-              <h3>新增扩展功能设置页</h3>
-              <p>集中显示搁这儿-ForNow 的连接状态、可用能力、权限边界，并提供其官网访问入口。</p>
+              <span class="mark">Finder</span>
+              <h3>适配多屏坐标</h3>
+              <p>DayDrop 会把 AppKit 屏幕坐标转换为访达窗口坐标，兼容左右或上下排列的显示器。</p>
             </div>
             <div class="release-point">
-              <span class="mark">URL Action</span>
-              <h3>开放今日文件夹动作</h3>
-              <p>其他本机应用可请求 <span class="mono">daydrop://open-today-folder</span>；授权、目录创建和最终打开仍由 DayDrop 按既有规则执行。</p>
+              <span class="mark">Fallback</span>
+              <h3>定位失败仍会打开</h3>
+              <p>目标显示器已断开或访达自动化权限不可用时，DayDrop 会回退到标准打开方式，并说明未应用精确位置。</p>
             </div>
           </div>
-          <div class="release-boundary"><strong>连接边界：</strong>入口只在接收端声明兼容能力时出现。DayDrop 通过 macOS 的打开文稿机制交付用户选择的现有文件，不读取或修改 ForNow 的应用数据。</div>
+          <div class="release-boundary"><strong>权限边界：</strong>精确放置窗口需要 macOS 的「自动化 → 访达」授权。拒绝授权不会影响今日文件夹创建，也不会阻止访达按标准方式打开。</div>
         </article>
 
         <div class="release-history rv" aria-label="历史版本">
+          <div class="release-row">
+            <span class="v">1.2.0</span>
+            <time datetime="2026-08-19">2026-08-19</time>
+            <p>新增搁这儿-ForNow 连接、文件条目快捷动作、扩展功能设置页和面向其他本机应用的今日文件夹入口。</p>
+          </div>
           <div class="release-row">
             <span class="v">1.1.1</span>
             <time datetime="2026-08-14">2026-08-14</time>
@@ -1139,6 +1145,10 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
           <div class="faq-a"><div class="inner">不会。只有本机安装的搁这儿-ForNow 明确声明兼容能力时，DayDrop 才会在文件条目的右键菜单中显示入口；每次都需要手动选择具体文件。发送前还会重新确认文件仍位于已授权的「下载」目录内，且没有被移动、删除或替换。</div></div>
         </div>
         <div class="faq-item">
+          <button class="faq-q">为什么会请求控制访达？<span class="pm"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10"/></svg></span></button>
+          <div class="faq-a"><div class="inner">仅用于把外部应用请求打开的今日文件夹窗口放到发起操作的显示器。DayDrop 不会用这项权限整理其他访达窗口。拒绝授权时，今日文件夹仍会按系统标准方式打开，只是不保证窗口出现在指定屏幕。</div></div>
+        </div>
+        <div class="faq-item">
           <button class="faq-q">它联网吗？会上传什么吗？<span class="pm"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10"/></svg></span></button>
           <div class="faq-a"><div class="inner">文件整理与查询不需要联网，也不会上传任何文件名、文件内容、索引或操作记录。启用更新检查时，DayDrop 只访问官方网站，获取经过签名的版本清单与安装包；索引、受管文件夹信息和永久操作历史仍只存储在这台 Mac 的应用容器内。</div></div>
         </div>
@@ -1169,13 +1179,13 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
         <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>不读取文件内容，只看元数据</li>
         <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>未完成不动、重名不覆盖、失败留原件</li>
       </ul>
-      <a class="btn btn-primary" href="/downloads/DayDrop-1.2.0.dmg" download>
+      <a class="btn btn-primary" href="/downloads/DayDrop-1.2.1.dmg" download>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0 5-5m-5 5-5-5"/><path d="M4 21h16"/></svg>
-        下载 DayDrop-1.2.0.dmg
+        下载 DayDrop-1.2.1.dmg
       </a>
       <a class="btn btn-ghost" href="https://github.com/febtancot/DayDrop" target="_blank" rel="noopener">查看源码 <span class="arr">→</span></a>
       <a class="btn btn-ghost" href="https://fornow.liveby.app" target="_blank" rel="noopener">访问搁这儿-ForNow <span class="arr">→</span></a>
-      <div class="side-note"><a href="#changelog">查看 1.2.0 更新日志</a> · SHA-256 见仓库</div>
+      <div class="side-note"><a href="#changelog">查看 1.2.1 更新日志</a> · SHA-256 见仓库</div>
     </div>
   </aside>
 </div>
@@ -1188,9 +1198,9 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
     <h2>让「下载」文件夹<br>自己保持整洁。</h2>
     <p>自动整理顶层文件，也让整个下载目录随时可查。所有处理都留在你的 Mac 上。</p>
     <div class="hero-ctas">
-      <a class="btn btn-primary btn-lg" href="/downloads/DayDrop-1.2.0.dmg" download>
+      <a class="btn btn-primary btn-lg" href="/downloads/DayDrop-1.2.1.dmg" download>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0 5-5m-5 5-5-5"/><path d="M4 21h16"/></svg>
-        下载 DayDrop 1.2.0
+        下载 DayDrop 1.2.1
       </a>
       <a class="btn btn-ghost btn-lg" href="https://github.com/febtancot/DayDrop" target="_blank" rel="noopener">Star on GitHub <span class="arr">→</span></a>
     </div>
@@ -1201,7 +1211,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
 <footer>
   <div class="wrap foot-inner">
     <span class="l"><img src="assets/daydrop-icon.png" alt="">DayDrop — Downloads, day by day.</span>
-    <span class="foot-mono">v1.2.0 · 2026-08-19 · macOS 13+</span>
+    <span class="foot-mono">v1.2.1 · 2026-08-26 · macOS 13+</span>
     <nav>
       <a href="https://github.com/febtancot/DayDrop" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/febtancot/DayDrop/blob/main/PRODUCT.md" target="_blank" rel="noopener">产品文档</a>
