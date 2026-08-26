@@ -99,12 +99,13 @@ npm run publish:web
 DMG SHA-256 against both the immutable deployment URL and
 `https://daydrop.liveby.app`.
 
-Push release commits before running `publish:web`. The Cloudflare GitHub app can
-still emit a repository-root deployment for this Direct Upload project; such a
-deployment does not contain the staged `Product_Site` artifact set. Prefix any
-unavoidable metadata-only commit made after the final upload with
-`[CF-Pages-Skip]`, then confirm that the canonical production deployment remains
-the verified Direct Upload deployment.
+`Product_Site` is the complete production artifact set, including the current
+DMG. Keep that DMG under version control so both the explicit Direct Upload flow
+and Cloudflare's Git-triggered fallback can publish the same complete site. Push
+release commits before running `publish:web`; prefix an unavoidable metadata-only
+commit made after the final upload with `[CF-Pages-Skip]`, then confirm that the
+canonical production deployment still passes the immutable and custom-domain
+checks.
 
 ## Archive layout
 
