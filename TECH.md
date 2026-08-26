@@ -8,7 +8,7 @@ Automatic discovery and the ordinary manual action remain root-only. The opt-in 
 
 ## Components
 
-- **App/UI:** menu-bar popover, standard-titlebar onboarding window, clickable today module, searchable/filterable paged history with CSV/JSON export, full Settings destination, current-version display, manual update action, and a shared compact toggle style.
+- **App/UI:** menu-bar popover, standard-titlebar onboarding window, clickable today module, searchable/filterable paged history with CSV/JSON export, full Settings destination, current-version display, manual update action, a shared compact toggle style, and an opaque appearance-aware panel surface that prevents desktop-image tint from reducing content contrast.
 - **Coordinator:** owns user-visible state, first-run/session baselines, retries, day changes, moves, migration, and UI refreshes.
 - **Folder access:** creates and resolves a security-scoped bookmark chosen through `NSOpenPanel`.
 - **Monitor:** watches the root and current-day folder without polling while idle. Every

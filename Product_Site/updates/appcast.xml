@@ -6,6 +6,20 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>DayDrop</title>
         <item>
+            <title>1.2.2</title>
+            <pubDate>Wed, 26 Aug 2026 09:37:46 +0800</pubDate>
+            <link>https://daydrop.liveby.app/</link>
+            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#changelog</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10</sparkle:version>
+            <sparkle:shortVersionString>1.2.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://daydrop.liveby.app/downloads/DayDrop-1.2.2.dmg" length="5156047" type="application/octet-stream" sparkle:edSignature="9YUDHJHBUrVLsr6ERwzqg7Kg0MB+57nYRVkTDLXv8sBd2P2/meJ2L8GEoDRpKGmGqTW4DMsYUTTAPLzUSuTsCg=="/>
+            <sparkle:deltas>
+                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop10-9.delta" sparkle:deltaFrom="9" length="244270" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="gIYNnN2vJPbuGujjb4GoLref40tdIUowSkwEVx/2krtG3JGqhSAAcEjlq2mPxpm6wlrMzkDoXJKAC00QXNf7Dw=="/>
+                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop10-8.delta" sparkle:deltaFrom="8" length="320922" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="ik+NdvfZiPHSc7V0Bn18lQ6KXt2QJDp7O0Ls9U8YMg/R869BdS4RSzPks7gs2MohShSfttKUTJbiRccsMVTYCg=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>1.2.1</title>
             <pubDate>Wed, 26 Aug 2026 00:28:05 +0800</pubDate>
             <link>https://daydrop.liveby.app/</link>
@@ -33,23 +47,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
                 <enclosure url="https://daydrop.liveby.app/downloads/DayDrop8-5.delta" sparkle:deltaFrom="5" length="598774" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="UZqaq3Iq66NG3OMeWXQFD4zBi7AsFcDMMrJbq35pWvdq23hwfkuKR15odh6h6TKGvr8VuCNK0ilomtot98UWBw=="/>
             </sparkle:deltas>
         </item>
-        <item>
-            <title>1.1.1</title>
-            <pubDate>Fri, 14 Aug 2026 11:24:59 +0800</pubDate>
-            <link>https://daydrop.liveby.app/</link>
-            <sparkle:fullReleaseNotesLink>https://daydrop.liveby.app/#changelog</sparkle:fullReleaseNotesLink>
-            <sparkle:version>7</sparkle:version>
-            <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://daydrop.liveby.app/downloads/DayDrop-1.1.1.dmg" length="5005477" type="application/octet-stream" sparkle:edSignature="Q8WHo3mo16j0RmeevT3fs4+hd9kaYOP7XrNbgYkYWbPe28RjO5lFcbesmsKO5zD+xyL0fOHZ1EYsHASloLdVBA=="/>
-            <sparkle:deltas>
-                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop7-5.delta" sparkle:deltaFrom="5" length="440402" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="5QHayuFs960v1R0+AsgLTT9/i+G3GUOk436z4bijhztZvrSwhmao46Z+y/tq66MrKtlteZOYcyYEVj8hZr8wBA=="/>
-                <enclosure url="https://daydrop.liveby.app/downloads/DayDrop7-4.delta" sparkle:deltaFrom="4" length="806586" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="TYHxeblNMCCTm3XoyBFjEKXNvKqpFW7myeo87rOMZczZz8OXfB8MPKp6/4ItIM9gOeDVGf248HN1Mz8YTCpxCw=="/>
-            </sparkle:deltas>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: VaL4XMbSvCg9JRbjEOfbsHFtWypBY30yy9MzJ+D/HEfGQCvUNMBXLOLttd7HAAoY0szl108vFVuPfQzv6p1RDg==
-length: 5063
+edSignature: RebIc5UZuV7V37PPjL9RKliIH+fR+11tCR8RbmNRnQhbLaKnS4VTFELyGbFfaaHBhtLd3D4fg+FTk7n6FE1NDA==
+length: 5066
 -->

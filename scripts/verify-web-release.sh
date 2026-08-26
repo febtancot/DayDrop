@@ -57,6 +57,10 @@ grep -F "下载 DayDrop $project_version" "$homepage" >/dev/null || {
     print -u2 "错误：首页主下载按钮没有展示 $project_version。"
     exit 1
 }
+grep -F "查看 $project_version 更新日志" "$homepage" >/dev/null || {
+    print -u2 "错误：首页更新日志入口没有展示 $project_version。"
+    exit 1
+}
 grep -F 'id="connected-apps"' "$homepage" >/dev/null || {
     print -u2 "错误：首页缺少关联应用介绍区。"
     exit 1
@@ -124,6 +128,10 @@ if [[ -n "$base_url" ]]; then
     }
     grep -F "/downloads/$dmg_name" "$remote_homepage" >/dev/null || {
         print -u2 "错误：$base_url 首页没有链接 $dmg_name。"
+        exit 1
+    }
+    grep -F "查看 $project_version 更新日志" "$remote_homepage" >/dev/null || {
+        print -u2 "错误：$base_url 首页更新日志入口没有展示 $project_version。"
         exit 1
     }
     grep -F 'id="connected-apps"' "$remote_homepage" >/dev/null || {

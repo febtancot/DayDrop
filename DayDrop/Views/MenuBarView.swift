@@ -26,7 +26,7 @@ struct MenuBarView: View {
             footer
         }
         .frame(width: panelWidth)
-        .background(.background)
+        .dayDropPanelSurface()
         .onAppear {
             controller.refreshTodayFilesNow()
         }

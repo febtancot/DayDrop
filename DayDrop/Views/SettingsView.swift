@@ -15,7 +15,7 @@ struct SettingsView: View {
             settingsTabs
         }
         .frame(width: 380, height: 520)
-        .background(.background)
+        .dayDropPanelSurface()
     }
 
     private var navigationBar: some View {

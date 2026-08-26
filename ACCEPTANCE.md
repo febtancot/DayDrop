@@ -20,6 +20,12 @@ This matrix separates deterministic automated evidence from signed-app and real-
 | AC-14 | Denied folder permission cannot be bypassed | Bookmark/entitlement checks; signed denial flow required | Automated boundary pass; manual pending |
 | AC-15 | File organization, history, and settings work offline; update checks fail safely without affecting organization | Network-disabled run and updater failure-isolation check required | Architectural separation pass; manual pending |
 
+## Panel readability
+
+| ID | Acceptance criterion | Evidence | Status |
+| --- | --- | --- | --- |
+| UI-01 | Main panel, File Query, and Settings remain readable when macOS uses a translucent menu-bar window over a bright or strongly colored desktop image | Shared opaque dynamic system background, window-container background on macOS 15+, source/build checks, and an installed 1.2.2 visual pass on macOS 27 | Automated/static pass; installed visual pending |
+
 ## 搁这儿-ForNow integration
 
 | ID | Acceptance criterion | Evidence | Status |
@@ -67,7 +73,7 @@ This matrix separates deterministic automated evidence from signed-app and real-
 | UP-03 | Published update metadata and packages cannot be substituted by a website-only compromise | Signed appcast/release-notes/archive verification, Developer ID, notarization, extraction-before-validation setting | Cryptographic pipeline pass; end-to-end install pending |
 | UP-04 | Homepage, current DMG, checksum, and latest appcast entry always publish the same version | Local preflight plus immutable Pages URL and production-domain download verification | Automated and live deployment pass |
 
-## Current development evidence — 2026-08-13
+## Current development evidence — 2026-08-26
 
 - The 2026-08-14 source adds per-file vnode finalization monitoring and a two-second
   metadata/event quiet window. Tests cover a preallocated same-size file receiving an
@@ -75,7 +81,7 @@ This matrix separates deterministic automated evidence from signed-app and real-
   behavior, modification-time reset, and delayed-event ordering. This does not yet prove
   NDM behavior in a signed live download.
 
-- The current source passes 103 XCTest cases with 0 failures on arm64 macOS.
+- The current source passes 129 XCTest cases with 0 failures on arm64 macOS 27.
 - Recursive index coverage includes arbitrary nesting, hidden files, package boundaries, symbolic-link exclusion, first-scan baseline, persistent reopen, current/unavailable search, type filters, cursor paging, rename/move/modify/discover/unavailable transitions, hard-link ambiguity, and a real nested FSEvents callback.
 - The recursive index UI and pause/offline flows still require installed-app interaction and visual acceptance. Automated success does not establish large-tree performance or release-package behavior.
 - Deep-organization tests cover immediate-subfolder discovery, non-recursion into deeper folders, excluded roots, safe nested-file moves, deeper-source rejection, and preservation of the source when rejected. The destructive confirmation compiles and routes only its explicit confirm action to the deep scope; an interactive cancel/confirm visual pass remains pending.
@@ -86,20 +92,21 @@ This matrix separates deterministic automated evidence from signed-app and real-
 - `npm run mac` successfully builds, terminates the prior process, moves the previous installed app into a recoverable Trash backup, installs `/Applications/DayDrop.app`, verifies its ad-hoc signature, and launches the installed path.
 - Source inspection confirms that the today-module action uses archive target preparation, ownership evaluation, managed-folder persistence, rollback of an empty newly created folder on persistence failure, today-monitor refresh, and Finder open. A dedicated Finder/UI automation test has not yet been added.
 - Main-panel and Settings toggles share the same runtime-backed controller methods and compact visual style.
+- Main panel, File Query, and Settings now share one opaque, appearance-aware system-window surface; source and release builds pass, while installed 1.2.2 visual inspection remains pending.
 - The onboarding window now uses a standard non-transparent title bar, preventing its ScrollView content from entering the title/traffic-light region by construction.
 - The 1.0.2 Settings page was rendered and inspected with the DayDrop icon, `版本 1.0.2（构建 3）`, automatic-check toggle, and manual update action visible without clipping.
 - A sandboxed 1.0.2 Debug instance fetched the production appcast and logged `OK: EdDSA signature is correct for appcast`. The official feed, release notes, and historical DMGs carry DayDrop EdDSA signatures; feed XML validation and local signature verification pass.
-- `npm run publish:web` published the prepared 1.0.2 site to Cloudflare Pages and verified the homepage version/link, latest appcast entry, and complete DMG SHA-256 against both the immutable deployment URL and production custom domain.
+- `npm run publish:web` published the prepared 1.2.2 site to Cloudflare Pages and verified the homepage version/link, latest appcast entry, and complete DMG SHA-256 against both the immutable deployment URL and production custom domain.
 - These checks do not establish visual polish, VoiceOver quality, Developer ID behavior, Intel compatibility of the Debug build, minimum-macOS compatibility, or public-release readiness.
 
-## Current release-package evidence — 2026-08-14
+## Current release-package evidence — 2026-08-26
 
-- 109 XCTest cases passed with strict concurrency checking and source warnings treated as errors.
+- 129 XCTest cases passed on macOS 27 with strict concurrency checking and source warnings treated as errors.
 - `xcodebuild analyze` passed.
 - Release app built as one universal Mach-O containing `arm64` and `x86_64`.
-- The current-source `DayDrop-1.1.1.dmg` was mounted successfully; its Developer ID signature, hardened runtime, sandbox/bookmark/update entitlements, Sparkle helpers, AppIcon, `/Applications` shortcut, and `arm64`/`x86_64` application were verified.
-- Apple notarization submission `72f0a702-33e4-4e54-b87c-09f9a9bd35d0` returned `Accepted` with no reported issues. Stapler validation passed and Gatekeeper reports `Notarized Developer ID` for both the DMG and mounted app.
-- Final SHA-256: `4a22cdb389afe3f22d3e9d3954f43cea16ae0a32dedaa5bcaba9a9f63ffb42d4`.
-- The signed Appcast advertises DayDrop 1.1.1 build 7 at `https://daydrop.liveby.app/downloads/DayDrop-1.1.1.dmg`. Cloudflare Pages deployment `https://d69a08b8.liveby-web.pages.dev` and the production custom domain were both verified by downloading the homepage, Appcast, and complete DMG and comparing version, build, URL, and SHA-256.
+- The current-source `DayDrop-1.2.2.dmg` was mounted successfully; its Developer ID signature, hardened runtime, sandbox/bookmark/update entitlements, Sparkle helpers, AppIcon, `/Applications` shortcut, and `arm64`/`x86_64` application were verified.
+- Apple notarization submission `e6b7547a-d7b3-46d4-8e4f-586cf3c89cbe` returned `Accepted` with no reported issues. Stapler validation passed and Gatekeeper reports `Notarized Developer ID` for both the DMG and mounted app.
+- Final SHA-256: `94076e782e2a3aaa601012f826b82706e5a8d9de61178f09f08745f46f41a224`.
+- The signed Appcast advertises DayDrop 1.2.2 build 10 at `https://daydrop.liveby.app/downloads/DayDrop-1.2.2.dmg`. Cloudflare Pages deployment `https://51c48578.liveby-web.pages.dev` and the production custom domain were both verified by downloading the homepage, Appcast, and complete DMG and comparing version, build, URL, and SHA-256.
 - Migration recovery tests cover persisted intent, exact source/destination identity, destination replacement, partial-merge resume, cancellation, symlink handling, and preservation of user-created parent folders.
 - No systematic visual acceptance pass is claimed. User screenshots drove targeted fixes, but the complete state matrix still requires inspection.

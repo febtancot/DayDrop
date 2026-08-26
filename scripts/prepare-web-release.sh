@@ -30,6 +30,7 @@ done
 SITE_RELEASE_VERSION="$project_version" SITE_RELEASE_DATE="$release_date" perl -0pi -e '
     s/DayDrop-[0-9]+\.[0-9]+\.[0-9]+\.dmg/DayDrop-$ENV{SITE_RELEASE_VERSION}.dmg/g;
     s/下载 DayDrop [0-9]+\.[0-9]+\.[0-9]+/下载 DayDrop $ENV{SITE_RELEASE_VERSION}/g;
+    s/查看 [0-9]+\.[0-9]+\.[0-9]+ 更新日志/查看 $ENV{SITE_RELEASE_VERSION} 更新日志/g;
     s/\bv[0-9]+\.[0-9]+\.[0-9]+\b/v$ENV{SITE_RELEASE_VERSION}/g;
     s/(class="foot-mono">v[0-9]+\.[0-9]+\.[0-9]+ · )[0-9]{4}-[0-9]{2}-[0-9]{2}/$1$ENV{SITE_RELEASE_DATE}/g;
 ' "$homepage"

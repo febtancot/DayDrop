@@ -12,6 +12,7 @@
 		01967B35BA8BFA9B0496FEA0 /* ArchiveTargetOwnershipPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7F5BE79DBDA4942F051D6E /* ArchiveTargetOwnershipPolicyTests.swift */; };
 		0914228DCF619F8517B5CEA0 /* ArchiveDayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29A40F58B6AAF696797D5EE2 /* ArchiveDayTests.swift */; };
 		0D81EA90AF79C87C142E3430 /* HistoryClassification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EBF4D9421D47602689D6289 /* HistoryClassification.swift */; };
+		1351E9BF1947A5DEA586FD98 /* DayDropPanelSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9379EBB57BA36A0FDB37D55A /* DayDropPanelSurface.swift */; };
 		179A6A4F3B84E21310CBC206 /* ArchiveEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282B8CB471EE2B4DD5959590 /* ArchiveEngine.swift */; };
 		195482BA379ED90A9793F2B4 /* LegacyArchiveFolderRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D021327F2247305881375B59 /* LegacyArchiveFolderRecovery.swift */; };
 		1A90CC38DEC6B6B000E3A4FE /* DayDropUpdaterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C5F0C9B58DAEADB495DAFE /* DayDropUpdaterTests.swift */; };
@@ -127,6 +128,7 @@
 		9192C6D2A4FB481C6EA6C6B5 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		91C40E96A1F80C8F2B4903BE /* DayDrop.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DayDrop.entitlements; sourceTree = "<group>"; };
 		92D97D82AE48E6D582F6AF7B /* ExistingFileDateResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExistingFileDateResolverTests.swift; sourceTree = "<group>"; };
+		9379EBB57BA36A0FDB37D55A /* DayDropPanelSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropPanelSurface.swift; sourceTree = "<group>"; };
 		9653569ED6FB6B7F2371F314 /* DirectoryEventMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryEventMonitor.swift; sourceTree = "<group>"; };
 		97D819243CE94B5B41FD6B49 /* ArchiveEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveEngineTests.swift; sourceTree = "<group>"; };
 		999DB47D4B664FF26C6F03BC /* LocalMetadataStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMetadataStoreTests.swift; sourceTree = "<group>"; };
@@ -302,6 +304,7 @@
 			isa = PBXGroup;
 			children = (
 				0D444756A6A8B747A155784E /* DayDropCompactToggleStyle.swift */,
+				9379EBB57BA36A0FDB37D55A /* DayDropPanelSurface.swift */,
 				AB77B2A2A64A84DF66FD2DEF /* MenuBarView.swift */,
 				9192C6D2A4FB481C6EA6C6B5 /* OnboardingView.swift */,
 				A18000441BF66A1CC61632C6 /* RecentActivityView.swift */,
@@ -474,6 +477,7 @@
 				C0F09A4904EBC691E58212C0 /* DayDropController.swift in Sources */,
 				59370F68157475E34DBDB1A8 /* DayDropDisplayIdentity.swift in Sources */,
 				8870FBF0B41139FFE5773912 /* DayDropExternalAction.swift in Sources */,
+				1351E9BF1947A5DEA586FD98 /* DayDropPanelSurface.swift in Sources */,
 				5569A5E1EB4FEF9C9228B03C /* DayDropUpdater.swift in Sources */,
 				34396CCFA267EDA78E9DF84E /* DirectoryEventMonitor.swift in Sources */,
 				3DE1F373474496AA5686FA78 /* DownloadCandidatePolicy.swift in Sources */,
@@ -598,7 +602,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -617,7 +621,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 1.2.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -681,7 +685,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -694,7 +698,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 1.2.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

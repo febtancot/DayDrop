@@ -17,7 +17,7 @@ struct RecentActivityView: View {
         }
         .frame(width: 480)
         .frame(minHeight: 520, idealHeight: 640, maxHeight: 740)
-        .background(.background)
+        .dayDropPanelSurface()
     }
 
     private var navigationBar: some View {
