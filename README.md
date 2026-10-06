@@ -2,6 +2,8 @@
 
 **Downloads, day by day.**
 
+**Homepage:** [daydrop.liveby.app](https://daydrop.liveby.app/)
+
 DayDrop is a privacy-first macOS 13+ menu-bar app that waits for downloads to finish, then organizes top-level files in the user's Downloads folder by day, month, and year. Candidate files must remain quiet for two seconds under both per-file vnode monitoring and size/modification-date checks before the final lock and identity checks allow a move. A separate read-only index keeps files anywhere below Downloads searchable without moving them. An explicit deep-organization action can include files inside immediate subfolders only after a destructive-risk confirmation. File metadata, change history, and organization history stay local; the only network path is the optional Sparkle update check against DayDrop's HTTPS website.
 
 ## Current development workflow
