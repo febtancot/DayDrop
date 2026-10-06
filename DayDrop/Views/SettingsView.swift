@@ -62,7 +62,7 @@ struct SettingsView: View {
                 SettingsSection(title: "整理工具") {
                     SettingsActionRow(
                         title: "立即整理现有文件",
-                        subtitle: "按文件日期整理“下载”文件夹顶层的现有文件",
+                        subtitle: "整理顶层文件及已识别的解压文件夹，保留文件夹内部结构",
                         systemImage: "wand.and.stars",
                         isEnabled: controller.hasFolderAccess
                     ) {
@@ -93,6 +93,43 @@ struct SettingsView: View {
                 }
 
                 SettingsSection(title: "自动化") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        SettingsToggleRow(
+                            title: "整理解压文件夹",
+                            systemImage: "archivebox",
+                            accessibilityHint: "核对 ZIP、RAR 或 7z 的目录清单，等待文件夹稳定后整体归档",
+                            isOn: Binding(
+                                get: { controller.organizeExtractedFoldersEnabled },
+                                set: { controller.setOrganizeExtractedFoldersEnabled($0) }
+                            )
+                        )
+                        Text("核对仍在“下载”目录内的 ZIP、RAR 或 7z，匹配后整体归档，并遵循延迟设置。无法匹配、加密、分卷、含链接或超过检查上限的目录会保留。")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Divider()
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        SettingsToggleRow(
+                            title: "延迟整理",
+                            systemImage: "clock.arrow.circlepath",
+                            accessibilityHint: "开启后保留当天下载，次日自动整理昨日及更早的文件；立即整理不受影响",
+                            isOn: Binding(
+                                get: { controller.delayedOrganizationEnabled },
+                                set: { controller.setDelayedOrganizationEnabled($0) }
+                            )
+                        )
+
+                        Text("当天下载留在原处，次日整理昨日及更早的文件。若 DayDrop 未运行，会在下次启动时补整理；仍可手动立即整理。")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Divider()
+
                     SettingsToggleRow(
                         title: "登录时自动启动",
                         systemImage: "power",

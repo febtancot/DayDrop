@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DayDrop — 下载，按天归位</title>
-<meta name="description" content="DayDrop 是一款完全本地运行的 macOS 菜单栏应用：等待下载完成后按日期自动归档顶层文件，以只读索引覆盖整个「下载」目录，并可把当前文件交给兼容的搁这儿-ForNow 暂存。">
+<meta name="description" content="DayDrop 是一款完全本地运行的 macOS 菜单栏应用：等待下载完成后按日期自动归档顶层文件与已识别的 ZIP、RAR、7z 解压目录，以只读索引覆盖整个「下载」目录，并可把当前文件交给兼容的搁这儿-ForNow 暂存。">
 <link rel="icon" type="image/png" href="assets/daydrop-icon.png">
 <style>
 /* ============ Design Tokens ============ */
@@ -625,7 +625,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
     <a class="brand" href="#top">
       <img src="assets/daydrop-icon.png" alt="DayDrop 图标">
       DayDrop
-      <span class="ver-badge">v1.2.2</span>
+      <span class="ver-badge">v1.4.0</span>
     </a>
     <nav class="main-nav">
       <a href="#rules">归档规则</a>
@@ -641,7 +641,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
         <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
         GitHub
       </a>
-      <a class="btn btn-primary btn-sm" href="/downloads/DayDrop-1.2.2.dmg" download>
+      <a class="btn btn-primary btn-sm" href="/downloads/DayDrop-1.4.0.dmg" download>
         下载 DMG <span class="arr">→</span>
       </a>
     </div>
@@ -654,11 +654,11 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
     <div>
       <span class="eyebrow"><span class="dot"></span>macOS 菜单栏应用<span class="kbd">本地运行</span></span>
       <h1>下载，按天归位。<span class="latin">Downloads, day by day.</span></h1>
-      <p class="hero-lede">DayDrop 静静待在菜单栏，<strong>等每个下载真正完成</strong>，再把顶层文件按日期归位；同时用只读索引覆盖整个「下载」目录，让你直接存进子文件夹的文件也能随时找到，并可交给兼容的搁这儿-ForNow 暂存。</p>
+      <p class="hero-lede">DayDrop 静静待在菜单栏，<strong>等每个下载真正完成</strong>，再把顶层文件和已识别的解压目录按日期归位；同时用只读索引覆盖整个「下载」目录，让你直接存进子文件夹的文件也能随时找到，并可交给兼容的搁这儿-ForNow 暂存。</p>
       <div class="hero-ctas">
-        <a class="btn btn-primary btn-lg" href="/downloads/DayDrop-1.2.2.dmg" download>
+        <a class="btn btn-primary btn-lg" href="/downloads/DayDrop-1.4.0.dmg" download>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0 5-5m-5 5-5-5"/><path d="M4 21h16"/></svg>
-          下载 DayDrop 1.2.2
+          下载 DayDrop 1.4.0
         </a>
         <a class="btn btn-ghost btn-lg" href="https://github.com/febtancot/DayDrop" target="_blank" rel="noopener">在 GitHub 查看源码 <span class="arr">→</span></a>
       </div>
@@ -666,7 +666,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
         <span><i></i>macOS 13 Ventura+</span>
         <span><i></i>Apple Silicon / Intel 通用二进制</span>
         <span><i></i>Developer ID 签名 · Apple 已公证</span>
-        <span><i></i>递归文件查询 · 不读取内容</span>
+        <span><i></i>本机整理 · 不上传文件</span>
       </div>
     </div>
 
@@ -706,7 +706,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
             <div class="today-list" id="todayList" title="在访达中打开今天的归档文件夹">
               <div class="file-row">
                 <svg viewBox="0 0 24 24"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7l-5-5z"/><path d="M14 2v5h5"/></svg>
-                <span class="n">DayDrop-1.2.2.dmg</span>
+                <span class="n">DayDrop-1.4.0.dmg</span>
                 <span class="tm" data-min="2">14:30</span>
               </div>
               <div class="file-div"></div>
@@ -919,7 +919,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
         <div class="pipe-step rv">
           <div class="pipe-num">03</div>
           <h3>日期路由</h3>
-          <p>实时下载记完成当天；手动整理的旧文件取创建日期（回退修改日期），映射到唯一的归档路径。</p>
+          <p>即时整理记完成当天；延迟整理保留原下载日期。手动整理的旧文件取创建日期（回退修改日期），映射到对应的归档路径。</p>
           <span class="mono-tag">Day / Month / Year</span>
         </div>
         <div class="pipe-step rv">
@@ -958,12 +958,12 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
         <div class="feat f5 rv">
           <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/></svg></span>
           <h3>立即整理现有文件</h3>
-          <p>首次授权后由你明确选择：把已堆积的顶层文件按创建日期一次性归位。应用启动时不会自作主张。</p>
+          <p>手动整理顶层文件与已识别的解压目录，文件夹内部结构保持完整。即使开启延迟整理，也可随时执行。</p>
         </div>
         <div class="feat f7 rv">
           <span class="ic"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></span>
           <h3>全下载目录文件查询</h3>
-          <p>递归索引任意深度的文件：无论是 DayDrop 归档的，还是你直接存进二级、三级目录的，都能按名称、路径和类型查找；当前文件与已不可用记录统一呈现。</p>
+          <p>递归索引任意深度的文件，按名称、路径和类型查找；支持按修改时间从新到旧或从旧到新排序，当前文件与已不可用记录统一呈现。</p>
         </div>
         <div class="feat f8 rv">
           <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 7h10l2 2h4v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z"/><path d="M8 13h8M13 10l3 3-3 3"/></svg></span>
@@ -1022,43 +1022,53 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
     <section id="changelog">
       <div class="sec-label">Release Notes</div>
       <h2 class="sec-title">更新日志<a class="anchor" href="#changelog">#</a></h2>
-      <p class="sec-sub">1.2.2 改进 macOS 27 上菜单栏面板的内容可读性，避免桌面壁纸透过窗口材质后削弱文字与控件对比度。</p>
+      <p class="sec-sub">1.4.0 新增解压文件夹整理：支持 ZIP、RAR 和 7z，核对来源与内容后整体归档，保留文件夹内部结构。</p>
 
       <div class="release-stack">
         <article class="release-card latest rv">
           <div class="release-head">
-            <span class="release-version">DayDrop 1.2.2</span>
-            <time class="release-date" datetime="2026-08-26">2026-08-26</time>
+            <span class="release-version">DayDrop 1.4.0</span>
+            <time class="release-date" datetime="2026-10-06">2026-10-06</time>
             <span class="release-current">当前版本</span>
-            <a class="btn btn-primary btn-sm release-download" href="/downloads/DayDrop-1.2.2.dmg" download>下载 1.2.2 <span class="arr">→</span></a>
+            <a class="btn btn-primary btn-sm release-download" href="/downloads/DayDrop-1.4.0.dmg" download>下载 1.4.0 <span class="arr">→</span></a>
           </div>
-          <p class="release-summary">使用随系统明暗模式变化的不透明窗口底色，让文字、分段控件和内容卡片不再受桌面背景颜色干扰。</p>
+          <p class="release-summary">解压后的资料也能按日期归位。在「设置 → 通用 → 自动化」查看默认开启的「整理解压文件夹」，符合条件的目录会整体移动。</p>
           <div class="release-grid">
             <div class="release-point">
-              <span class="mark">Contrast</span>
-              <h3>阻断壁纸颜色穿透</h3>
-              <p>菜单栏窗口使用不透明的系统窗口底色，避免高亮壁纸与半透明材质叠加后让文字和控件难以辨认。</p>
+              <span class="mark">Formats</span>
+              <h3>支持三种常用格式</h3>
+              <p>支持 ZIP、RAR/RAR5 和 7z。对应压缩包可以位于下载目录顶层，也可以已被 DayDrop 收入日期文件夹。</p>
             </div>
             <div class="release-point">
-              <span class="mark">Appearance</span>
-              <h3>继续适配明暗模式</h3>
-              <p>底色来自 macOS 动态系统颜色：浅色模式保持明亮，深色模式保持深色，同时维持对应的文字层级。</p>
+              <span class="mark">Structure</span>
+              <h3>保留完整文件夹结构</h3>
+              <p>核对目录清单与文件大小，检测到连续 10 秒稳定后整体归档；遇到同名目录会另取名称，保留两份内容。</p>
             </div>
             <div class="release-point">
-              <span class="mark">Consistency</span>
-              <h3>三个面板统一处理</h3>
-              <p>主面板、文件查询和设置页共用同一背景策略，页面切换时不会重新出现透色或对比度突变。</p>
+              <span class="mark">Automation</span>
+              <h3>沿用暂停与延迟设置</h3>
+              <p>自动整理按已有设置运行。「立即整理」仍可手动执行，深度整理也会保护疑似尚未解压完成的目录。</p>
             </div>
             <div class="release-point">
-              <span class="mark">Compatibility</span>
-              <h3>保留 macOS 13+ 支持</h3>
-              <p>macOS 15 及更高版本同时设置窗口容器背景；较早系统使用同一不透明底色回退，不提高最低系统要求。</p>
+              <span class="mark">Local</span>
+              <h3>来源不明确时保留</h3>
+              <p>识别在本机完成。原包缺失、匹配不明确、加密、分卷、含链接或超过检查上限的目录会继续留在原处。</p>
             </div>
           </div>
-          <div class="release-boundary"><strong>变更边界：</strong>本次更新只调整菜单栏面板的背景承载方式；文件整理、权限、索引、自动更新和本机应用连接规则保持不变。</div>
+          <div class="release-boundary"><strong>使用说明：</strong>请保留对应压缩包，以便核对解压结果。普通文件夹保持原位，识别出的目录会作为一个完整项目归档。</div>
         </article>
 
         <div class="release-history rv" aria-label="历史版本">
+          <div class="release-row">
+            <span class="v">1.3.0</span>
+            <time datetime="2026-09-28">2026-09-28</time>
+            <p>新增延迟整理，保留当天下载；修复索引重复记录导致的崩溃，并支持按文件修改时间排序。</p>
+          </div>
+          <div class="release-row">
+            <span class="v">1.2.2</span>
+            <time datetime="2026-08-26">2026-08-26</time>
+            <p>改进 macOS 27 上菜单栏面板的内容可读性，主面板、文件查询和设置页使用随系统明暗模式变化的不透明窗口底色。</p>
+          </div>
           <div class="release-row">
             <span class="v">1.2.1</span>
             <time datetime="2026-08-26">2026-08-26</time>
@@ -1109,8 +1119,8 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
             <p>仅持有你亲手选择的「下载」文件夹读写权限，并通过安全作用域书签持久化，重启后依然有效。</p>
           </div>
           <div class="priv">
-            <h3><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16" stroke-linecap="round"/></svg>不读文件内容</h3>
-            <p>整理判断与递归索引只使用路径、名称、时间、大小、文件类型等元数据，以及文件是否被独占打开；内容本身，从不读取。</p>
+            <h3><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16" stroke-linecap="round"/></svg>本机核对，无需上传</h3>
+            <p>整理与查询使用路径、名称、时间、大小、类型等元数据。识别解压目录时还会在本机读取压缩包清单；文件夹内的资料不会作为正文解析，也不会上传。</p>
           </div>
           <div class="priv">
             <h3><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.4-3.1 8.2-8 9-4.9-.8-8-4.6-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-4.5"/></svg>公证过的发行版</h3>
@@ -1135,7 +1145,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
         </div>
         <div class="faq-item">
           <button class="faq-q">「下载」里已有的文件夹会被整理进去吗？<span class="pm"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10"/></svg></span></button>
-          <div class="faq-a"><div class="inner">不会被自动整理。DayDrop 的自动移动仍只处理顶层「普通文件」，不会导入既有文件夹；但 1.1.0 的只读索引会递归扫描其中的文件，让这些文件可以被查询。自动迁移只触碰带身份与日期标记的受管文件夹，不会只凭相似名称认领你的目录。</div></div>
+          <div class="faq-a"><div class="inner">普通文件夹保持原位。1.4.0 会核对顶层目录与对应 ZIP、RAR 或 7z 的清单，匹配且稳定后整体归档；缺少原包或无法确认时继续保留。只读索引仍覆盖目录内的文件，方便查询。受管日期目录的迁移仍需要身份与日期标记。</div></div>
         </div>
         <div class="faq-item">
           <button class="faq-q">直接保存到二级目录的文件，会被记录吗？<span class="pm"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10"/></svg></span></button>
@@ -1181,16 +1191,16 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
         <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>Developer ID 签名，Apple 公证通过</li>
         <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>整个下载目录只读索引，子目录也能查</li>
         <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>文件处理始终本地，更新仅访问官网</li>
-        <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>不读取文件内容，只看元数据</li>
+        <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>本机核对元数据与压缩包清单</li>
         <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>未完成不动、重名不覆盖、失败留原件</li>
       </ul>
-      <a class="btn btn-primary" href="/downloads/DayDrop-1.2.2.dmg" download>
+      <a class="btn btn-primary" href="/downloads/DayDrop-1.4.0.dmg" download>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0 5-5m-5 5-5-5"/><path d="M4 21h16"/></svg>
-        下载 DayDrop-1.2.2.dmg
+        下载 DayDrop-1.4.0.dmg
       </a>
       <a class="btn btn-ghost" href="https://github.com/febtancot/DayDrop" target="_blank" rel="noopener">查看源码 <span class="arr">→</span></a>
       <a class="btn btn-ghost" href="https://fornow.liveby.app" target="_blank" rel="noopener">访问搁这儿-ForNow <span class="arr">→</span></a>
-      <div class="side-note"><a href="#changelog">查看 1.2.2 更新日志</a> · SHA-256 见仓库</div>
+      <div class="side-note"><a href="#changelog">查看 1.4.0 更新日志</a> · SHA-256 见仓库</div>
     </div>
   </aside>
 </div>
@@ -1201,11 +1211,11 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
   <div class="wrap">
     <img src="assets/daydrop-icon.png" alt="DayDrop 图标">
     <h2>让「下载」文件夹<br>自己保持整洁。</h2>
-    <p>自动整理顶层文件，也让整个下载目录随时可查。所有处理都留在你的 Mac 上。</p>
+    <p>自动整理顶层文件与已识别的解压目录，让整个下载目录随时可查。所有处理都留在你的 Mac 上。</p>
     <div class="hero-ctas">
-      <a class="btn btn-primary btn-lg" href="/downloads/DayDrop-1.2.2.dmg" download>
+      <a class="btn btn-primary btn-lg" href="/downloads/DayDrop-1.4.0.dmg" download>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0 5-5m-5 5-5-5"/><path d="M4 21h16"/></svg>
-        下载 DayDrop 1.2.2
+        下载 DayDrop 1.4.0
       </a>
       <a class="btn btn-ghost btn-lg" href="https://github.com/febtancot/DayDrop" target="_blank" rel="noopener">Star on GitHub <span class="arr">→</span></a>
     </div>
@@ -1216,7 +1226,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 34px}
 <footer>
   <div class="wrap foot-inner">
     <span class="l"><img src="assets/daydrop-icon.png" alt="">DayDrop — Downloads, day by day.</span>
-    <span class="foot-mono">v1.2.2 · 2026-08-26 · macOS 13+</span>
+    <span class="foot-mono">v1.4.0 · 2026-10-06 · macOS 13+</span>
     <nav>
       <a href="https://github.com/febtancot/DayDrop" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/febtancot/DayDrop/blob/main/PRODUCT.md" target="_blank" rel="noopener">产品文档</a>

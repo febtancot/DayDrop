@@ -285,7 +285,7 @@ private struct TodayFileRow: View {
 
     var body: some View {
         HStack(spacing: 9) {
-            Image(systemName: "doc")
+            Image(systemName: file.isDirectory ? "folder" : "doc")
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
                 .frame(width: 18)

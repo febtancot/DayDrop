@@ -167,9 +167,32 @@ struct RecentActivityView: View {
                 onSelect: controller.setIndexedFileCategory
             )
 
+            Menu {
+                ForEach(DownloadFileModificationSortOrder.allCases, id: \.self) { order in
+                    Button {
+                        controller.setIndexedFileModificationSortOrder(order)
+                    } label: {
+                        if order == controller.indexedFileFilter.modificationSortOrder {
+                            Label(order.displayName, systemImage: "checkmark")
+                        } else {
+                            Text(order.displayName)
+                        }
+                    }
+                }
+            } label: {
+                Label(
+                    controller.indexedFileFilter.modificationSortOrder.displayName,
+                    systemImage: "arrow.up.arrow.down"
+                )
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .accessibilityLabel("修改时间排序：\(controller.indexedFileFilter.modificationSortOrder.displayName)")
+            .accessibilityHint("选择按文件修改时间从新到旧或从旧到新排列")
+
             Spacer()
 
-            if controller.indexedFileFilter != .current {
+            if controller.indexedFileFilter.hasActiveFilters {
                 Button("重置") {
                     controller.clearIndexedFileFilters()
                 }
@@ -259,10 +282,12 @@ struct RecentActivityView: View {
         } else if controller.indexedFiles.isEmpty && !controller.isLoadingIndexedFiles {
             emptyState(
                 symbol: "doc.text.magnifyingglass",
-                title: controller.indexedFileFilter == .current ? "没有可查询的文件" : "没有匹配文件",
-                message: controller.indexedFileFilter == .current
-                    ? "授权后，DayDrop 会在后台建立下载目录的只读文件索引。"
-                    : "没有符合当前搜索和筛选条件的文件。",
+                title: controller.indexedFileFilter.hasActiveFilters
+                    ? "没有匹配文件"
+                    : "没有可查询的文件",
+                message: controller.indexedFileFilter.hasActiveFilters
+                    ? "没有符合当前搜索和筛选条件的文件。"
+                    : "授权后，DayDrop 会在后台建立下载目录的只读文件索引。",
                 onReset: indexedFileResetAction
             )
         } else {
@@ -393,7 +418,7 @@ struct RecentActivityView: View {
     }
 
     private var indexedFileResetAction: (() -> Void)? {
-        guard controller.indexedFileFilter != .current else { return nil }
+        guard controller.indexedFileFilter.hasActiveFilters else { return nil }
         return { controller.clearIndexedFileFilters() }
     }
 

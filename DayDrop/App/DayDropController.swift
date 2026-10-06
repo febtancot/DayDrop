@@ -38,6 +38,7 @@ struct TodayFileItem: Identifiable, Equatable, Sendable {
     let name: String
     let completedAt: Date
     let fileSystemIdentity: String
+    var isDirectory = false
 }
 
 enum ArchiveTargetOwnershipDecision: Equatable {
@@ -107,6 +108,8 @@ final class DayDropController: ObservableObject {
     @Published private(set) var downloadsIndexErrorMessage: String?
     @Published private(set) var launchAtLogin = false
     @Published private(set) var notificationsEnabled: Bool
+    @Published private(set) var delayedOrganizationEnabled: Bool
+    @Published private(set) var organizeExtractedFoldersEnabled: Bool
     @Published private(set) var statusMessage: String?
     @Published private(set) var isShowingRecentActivity = false
     @Published private(set) var isShowingSettings = false
@@ -116,6 +119,8 @@ final class DayDropController: ObservableObject {
         static let onboardingCompleted = "DayDrop.OnboardingCompleted"
         static let paused = "DayDrop.IsPaused"
         static let notificationsEnabled = "DayDrop.NotificationsEnabled"
+        static let delayedOrganizationEnabled = "DayDrop.DelayedOrganizationEnabled"
+        static let organizeExtractedFolders = "DayDrop.OrganizeExtractedFolders"
     }
 
     private enum CandidateOrigin {
@@ -126,11 +131,21 @@ final class DayDropController: ObservableObject {
     private struct PendingCandidate {
         var snapshot: TopLevelFileSnapshot
         var finalization: FileFinalizationTracker
-        let finalizationMonitor: FileFinalizationMonitor
+        let finalizationMonitor: FileFinalizationMonitor?
         var origin: CandidateOrigin
+        var extractedFolder: ExtractedFolderEvidence?
+        var folderFinalization: ExtractedFolderFinalization?
         var organizationScope: ExistingFileOrganizationScope = .topLevel
         var failureCount = 0
         var nextMoveAttempt = Date.distantPast
+
+        @MainActor
+        func hasBeenQuiet(at uptime: TimeInterval = ProcessInfo.processInfo.systemUptime) -> Bool {
+            if let folderFinalization {
+                return uptime - folderFinalization.lastActivityUptime >= ExtractedFolderFinalization.quietInterval
+            }
+            return finalizationMonitor?.hasBeenQuiet(for: DayDropController.finalizationQuietInterval, atUptime: uptime) == true
+        }
     }
 
     private static let finalizationQuietInterval: TimeInterval = 2
@@ -152,7 +167,9 @@ final class DayDropController: ObservableObject {
     private let notificationService: BatchNotificationService
     private let archiveEngine: ArchiveEngine
     private let scanner: FileCandidateScanner
+    private let extractedFolderRecognizer = ExtractedFolderRecognizer()
     private let fileManager: FileManager
+    private let currentDate: @MainActor () -> Date
 
     private var folderAccess: SecurityScopedFolderAccess?
     private var downloadsURL: URL?
@@ -175,6 +192,8 @@ final class DayDropController: ObservableObject {
     private var rootDebounceTask: Task<Void, Never>?
     private var midnightTask: Task<Void, Never>?
     private var notificationObservers: [NSObjectProtocol] = []
+    private var workspaceObservers: [NSObjectProtocol] = []
+    private var automaticOrganizationGeneration = 0
     private var hasStarted = false
     private var scanInProgress = false
     private var scanRequested = false
@@ -183,12 +202,15 @@ final class DayDropController: ObservableObject {
     private var blockingFailureRequiresRestart = false
     private var blockingFailureMessage: String?
 
-    private init(
+    init(
         defaults: UserDefaults = .standard,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        stores: DayDropControllerStores? = nil,
+        currentDate: @escaping @MainActor () -> Date = Date.init
     ) {
         self.defaults = defaults
         self.fileManager = fileManager
+        self.currentDate = currentDate
         self.bookmarkStore = DownloadsBookmarkStore(defaults: defaults)
         self.loginItemService = LoginItemService()
         self.notificationService = BatchNotificationService()
@@ -196,13 +218,15 @@ final class DayDropController: ObservableObject {
         self.scanner = FileCandidateScanner(fileManager: fileManager)
         self.isPaused = defaults.bool(forKey: DefaultsKey.paused)
         self.notificationsEnabled = defaults.bool(forKey: DefaultsKey.notificationsEnabled)
+        self.delayedOrganizationEnabled = defaults.bool(forKey: DefaultsKey.delayedOrganizationEnabled)
+        self.organizeExtractedFoldersEnabled = defaults.object(forKey: DefaultsKey.organizeExtractedFolders) as? Bool ?? true
 
-        var initializedMetadataStore: LocalMetadataStore?
-        var initializedHistoryStore: HistoryStore?
-        var initializedDownloadsIndexStore: DownloadsIndexStore?
+        var initializedMetadataStore = stores?.metadata
+        var initializedHistoryStore = stores?.history
+        var initializedDownloadsIndexStore = stores?.index
         var storageInitializationError: Error?
         var indexInitializationError: Error?
-        if !DayDropRuntime.isRunningUnitTests {
+        if stores == nil, !DayDropRuntime.isRunningUnitTests {
             do {
                 initializedMetadataStore = try LocalMetadataStore()
                 initializedHistoryStore = try HistoryStore()
@@ -281,6 +305,7 @@ final class DayDropController: ObservableObject {
         if !isPaused, onboardingCompleted, metadataStore != nil, historyStore != nil {
             await migrateManagedFolders()
             startRootMonitor()
+            await processDelayedDownloadsIfNeeded()
         }
         refreshTodayFilesNow()
     }
@@ -307,6 +332,9 @@ final class DayDropController: ObservableObject {
     }
 
     func stop() {
+        automaticOrganizationGeneration += 1
+        hasFolderAccess = false
+        downloadsURL = nil
         rootDebounceTask?.cancel()
         retryTask?.cancel()
         historySearchTask?.cancel()
@@ -321,6 +349,8 @@ final class DayDropController: ObservableObject {
         migrationCancellationToken?.cancel()
         notificationObservers.forEach(NotificationCenter.default.removeObserver)
         notificationObservers.removeAll()
+        workspaceObservers.forEach(NSWorkspace.shared.notificationCenter.removeObserver)
+        workspaceObservers.removeAll()
         folderAccess?.stop()
         folderAccess = nil
         hasStarted = false
@@ -334,6 +364,7 @@ final class DayDropController: ObservableObject {
             return
         }
         isPaused.toggle()
+        automaticOrganizationGeneration += 1
         defaults.set(isPaused, forKey: DefaultsKey.paused)
 
         if isPaused {
@@ -358,6 +389,7 @@ final class DayDropController: ObservableObject {
             statusMessage = "自动整理已开启。"
             Task {
                 await migrateManagedFolders()
+                await processDelayedDownloadsIfNeeded()
             }
         }
     }
@@ -365,7 +397,7 @@ final class DayDropController: ObservableObject {
     func chooseDownloadsFolder() {
         let panel = NSOpenPanel()
         panel.title = "授权 DayDrop 访问“下载”文件夹"
-        panel.message = "请选择当前用户的“下载”文件夹。DayDrop 默认只整理顶层文件；深度整理仅在你再次确认后处理下一层文件夹。"
+        panel.message = "请选择当前用户的“下载”文件夹。DayDrop 整理顶层文件与已识别的解压文件夹；深度整理仅在你再次确认后处理下一层文件夹中的文件。"
         panel.prompt = "授权"
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
@@ -402,6 +434,7 @@ final class DayDropController: ObservableObject {
                 if !isPaused, onboardingCompleted {
                     startRootMonitor()
                     await migrateManagedFolders()
+                    await processDelayedDownloadsIfNeeded()
                 }
                 statusMessage = "已授权“下载”文件夹。"
             }
@@ -439,15 +472,20 @@ final class DayDropController: ObservableObject {
                     }
                 )
 
+                let rootSnapshots = try scanner.topLevelSnapshots(in: downloadsURL)
+                let extractionScan = await identifyExtractedFolders(rootSnapshots, in: downloadsURL)
+                let extractedFolders = extractionScan.matchedFolders
+
                 let snapshots: [TopLevelFileSnapshot]
                 switch scope {
                 case .topLevel:
-                    snapshots = try scanner.topLevelSnapshots(in: downloadsURL)
+                    snapshots = rootSnapshots
                 case .includingImmediateSubfolders:
                     snapshots = try scanner.snapshotsIncludingImmediateSubfolders(
                         in: downloadsURL
                     ) { folder in
                         !managedTopLevelIdentities.contains(folder.identity)
+                            && !extractionScan.protectedFolderIdentities.contains(folder.identity)
                             && DayDropDirectoryOwnershipMarker.managedDateIdentifier(
                                 at: folder.url
                             ) == nil
@@ -457,7 +495,8 @@ final class DayDropController: ObservableObject {
 
                 var queued = 0
 
-                for snapshot in snapshots where scanner.isEligible(snapshot) {
+                for snapshot in snapshots where scanner.isEligible(snapshot)
+                    || (organizeExtractedFoldersEnabled && extractedFolders[snapshot.identity] != nil) {
                     guard scanner.isSupportedSourceURL(
                         snapshot.url,
                         in: downloadsURL,
@@ -469,7 +508,8 @@ final class DayDropController: ObservableObject {
                        enqueuePendingCandidate(
                             snapshot,
                             origin: .manualExistingFile,
-                            organizationScope: scope
+                            organizationScope: scope,
+                            extractedFolder: extractedFolders[snapshot.identity]
                        ) {
                         queued += 1
                     }
@@ -477,14 +517,14 @@ final class DayDropController: ObservableObject {
 
                 if queued == 0 {
                     statusMessage = scope == .topLevel
-                        ? "没有需要整理的顶层文件。"
+                        ? "没有需要整理的顶层文件或已识别的解压文件夹。"
                         : "顶层和下一层文件夹中没有需要整理的文件。"
                     refreshTodayFilesNow()
                     return
                 }
 
                 statusMessage = scope == .topLevel
-                    ? "正在确认 \(queued) 个文件是否已下载完成…"
+                    ? "正在确认 \(queued) 个项目是否已下载或解压完成…"
                     : "正在确认 \(queued) 个文件（含下一层文件夹）是否可安全整理…"
                 await scanAndProcessCandidates(discoverAutomaticFiles: !isPaused)
             } catch {
@@ -526,7 +566,7 @@ final class DayDropController: ObservableObject {
         }
 
         Task {
-            let today = ArchiveDay(date: Date())
+            let today = ArchiveDay(date: currentDate())
             let preparation = await archiveEngine.prepareTargetFolder(
                 for: today,
                 relativeTo: today,
@@ -688,9 +728,17 @@ final class DayDropController: ObservableObject {
         resetIndexedFileQuery()
     }
 
+    func setIndexedFileModificationSortOrder(_ order: DownloadFileModificationSortOrder) {
+        guard indexedFileFilter.modificationSortOrder != order else { return }
+        indexedFileFilter.modificationSortOrder = order
+        resetIndexedFileQuery()
+    }
+
     func clearIndexedFileFilters() {
         indexedFileSearchTask?.cancel()
+        let sortOrder = indexedFileFilter.modificationSortOrder
         indexedFileFilter = .current
+        indexedFileFilter.modificationSortOrder = sortOrder
         resetIndexedFileQuery()
     }
 
@@ -794,7 +842,7 @@ final class DayDropController: ObservableObject {
 
         let panel = NSSavePanel()
         panel.title = "导出整理记录"
-        panel.nameFieldStringValue = "DayDrop-整理记录-\(ArchiveDay(date: Date()).encoded).\(format.fileExtension)"
+        panel.nameFieldStringValue = "DayDrop-整理记录-\(ArchiveDay(date: currentDate()).encoded).\(format.fileExtension)"
         panel.prompt = "导出"
         panel.canCreateDirectories = true
         panel.isExtensionHidden = false
@@ -925,6 +973,45 @@ final class DayDropController: ObservableObject {
         }
     }
 
+    func setDelayedOrganizationEnabled(_ enabled: Bool) {
+        guard delayedOrganizationEnabled != enabled else { return }
+        delayedOrganizationEnabled = enabled
+        defaults.set(enabled, forKey: DefaultsKey.delayedOrganizationEnabled)
+        automaticOrganizationGeneration += 1
+
+        // Re-evaluate automatic work under the new setting without retaining
+        // one descriptor and a one-second retry for every file held until tomorrow.
+        for identity in Array(pendingCandidates.keys)
+        where pendingCandidates[identity]?.origin == .runtimeDownload {
+            removePendingCandidate(identity)
+        }
+        scheduleRetryIfNeeded()
+        statusMessage = enabled
+            ? "已开启延迟整理：当天下载留在原处，次日整理昨日及更早的文件。"
+            : "已关闭延迟整理，恢复自动整理新下载的文件。"
+
+        guard !isPaused, onboardingCompleted else { return }
+        Task { await scanAndProcessCandidates(discoverAutomaticFiles: true) }
+    }
+
+    func setOrganizeExtractedFoldersEnabled(_ enabled: Bool) {
+        guard organizeExtractedFoldersEnabled != enabled else { return }
+        organizeExtractedFoldersEnabled = enabled
+        defaults.set(enabled, forKey: DefaultsKey.organizeExtractedFolders)
+        automaticOrganizationGeneration += 1
+        if !enabled {
+            for identity in Array(pendingCandidates.keys) where pendingCandidates[identity]?.extractedFolder != nil {
+                removePendingCandidate(identity)
+            }
+        }
+        scheduleRetryIfNeeded()
+        statusMessage = enabled
+            ? "已开启解压文件夹整理：核对 ZIP、RAR 或 7z 内容并等待稳定后，整体归档。"
+            : "已关闭解压文件夹整理。"
+        guard !isPaused, onboardingCompleted else { return }
+        Task { await scanAndProcessCandidates(discoverAutomaticFiles: true) }
+    }
+
     func setNotificationsEnabled(_ enabled: Bool) {
         if !enabled {
             notificationsEnabled = false
@@ -964,7 +1051,10 @@ final class DayDropController: ObservableObject {
         captureCurrentFilesAsBaseline()
         if !isPaused {
             startRootMonitor()
-            Task { await migrateManagedFolders() }
+            Task {
+                await migrateManagedFolders()
+                await processDelayedDownloadsIfNeeded()
+            }
         }
         if organizeExisting {
             organizeExistingFiles()
@@ -979,7 +1069,7 @@ final class DayDropController: ObservableObject {
             return
         }
 
-        let today = ArchiveDay(date: Date())
+        let today = ArchiveDay(date: currentDate())
         let todayRoute = ArchivePathRouter().route(for: today, relativeTo: today)
         guard let todayFolder = managedFolderURL(
             relativePath: todayRoute.relativePath,
@@ -998,6 +1088,8 @@ final class DayDropController: ObservableObject {
         }
         let keys: [URLResourceKey] = [
             .isRegularFileKey,
+            .isDirectoryKey,
+            .isSymbolicLinkKey,
             .isHiddenKey,
             .addedToDirectoryDateKey,
             .creationDateKey,
@@ -1019,7 +1111,8 @@ final class DayDropController: ObservableObject {
 
         todayFiles = urls.compactMap { url in
             guard let values = try? url.resourceValues(forKeys: Set(keys)),
-                  values.isRegularFile == true,
+                  values.isRegularFile == true || values.isDirectory == true,
+                  values.isSymbolicLink != true,
                   values.isHidden != true,
                   !url.lastPathComponent.hasPrefix("."),
                   let fileSystemIdentity = FileSystemIdentity.itemIdentifier(at: url)
@@ -1037,7 +1130,8 @@ final class DayDropController: ObservableObject {
                 id: standardizedPath,
                 name: url.lastPathComponent,
                 completedAt: completedAt,
-                fileSystemIdentity: fileSystemIdentity
+                fileSystemIdentity: fileSystemIdentity,
+                isDirectory: values.isDirectory == true
             )
         }.sorted { lhs, rhs in
             if lhs.completedAt == rhs.completedAt {
@@ -1189,7 +1283,7 @@ final class DayDropController: ObservableObject {
     }
 
     private func startDownloadsTreeMonitor() {
-        guard hasFolderAccess, downloadsIndexStore != nil, let downloadsURL else { return }
+        guard hasFolderAccess, let downloadsURL else { return }
         if downloadsTreeMonitor?.isRunning == true { return }
 
         let monitor = DownloadsTreeEventMonitor(rootURL: downloadsURL)
@@ -1207,6 +1301,17 @@ final class DayDropController: ObservableObject {
 
     private func handleDownloadsTreeEvent(_ event: DownloadsTreeChangeEvent) {
         guard hasFolderAccess else { return }
+        let uptime = ProcessInfo.processInfo.systemUptime
+        for identity in Array(pendingCandidates.keys) {
+            guard var candidate = pendingCandidates[identity], candidate.extractedFolder != nil else { continue }
+            let folderPath = candidate.snapshot.url.standardizedFileURL.path
+            if event.requiresFullScan || event.paths.contains(where: {
+                $0 == folderPath || $0.hasPrefix(folderPath + "/")
+            }) {
+                candidate.folderFinalization?.recordActivity(at: uptime)
+                pendingCandidates[identity] = candidate
+            }
+        }
         downloadsIndexDebounceTask?.cancel()
         downloadsIndexDebounceTask = Task { [weak self] in
             // FSEvents may coalesce a burst of file and parent-directory events.
@@ -1214,7 +1319,36 @@ final class DayDropController: ObservableObject {
             try? await Task.sleep(nanoseconds: event.requiresFullScan ? 100_000_000 : 450_000_000)
             guard !Task.isCancelled, let self else { return }
             await self.reconcileDownloadsIndex()
+            if self.organizeExtractedFoldersEnabled, !self.isPaused {
+                await self.scanAndProcessCandidates(discoverAutomaticFiles: true)
+            }
         }
+    }
+
+    private func identifyExtractedFolders(
+        _ snapshots: [TopLevelFileSnapshot],
+        in rootURL: URL
+    ) async -> ExtractionRecognition {
+        guard organizeExtractedFoldersEnabled,
+              snapshots.contains(where: ExtractedFolderRecognizer.isCandidateFolder)
+        else { return .empty }
+        var archiveURLs = snapshots.filter {
+            scanner.isEligible($0) && ArchiveManifestReader.supportedExtensions.contains($0.url.pathExtension.lowercased())
+        }.map(\.url)
+        if let downloadsIndexStore {
+            var filter = DownloadFileFilter.current
+            filter.category = .archive
+            if let page = try? await downloadsIndexStore.page(filter: filter, limit: 500) {
+                let resolver = IndexedDownloadFileLocationResolver(fileManager: fileManager)
+                archiveURLs += page.records.compactMap { resolver.existingItemURL(for: $0, in: rootURL) }
+            }
+        }
+        let managedFolders = await metadataStore?.loadManagedFolders() ?? []
+        let matches = await extractedFolderRecognizer.scan(
+            folders: snapshots, archiveURLs: archiveURLs, managedFolders: managedFolders, in: rootURL
+        )
+        guard hasFolderAccess, downloadsURL == rootURL, organizeExtractedFoldersEnabled else { return .empty }
+        return matches
     }
 
     private func reconcileDownloadsIndex() async {
@@ -1303,6 +1437,9 @@ final class DayDropController: ObservableObject {
             return
         }
 
+        let extractedFolders = await identifyExtractedFolders(snapshots, in: downloadsURL).matchedFolders
+        guard hasFolderAccess, self.downloadsURL == downloadsURL else { return }
+
         var snapshotsByIdentity = Dictionary(
             snapshots.map { ($0.identity, $0) },
             uniquingKeysWith: { _, latest in latest }
@@ -1331,7 +1468,8 @@ final class DayDropController: ObservableObject {
 
         for identity in Array(pendingCandidates.keys) {
             guard let candidate = pendingCandidates[identity],
-                  !candidate.finalizationMonitor.isRunning,
+                  candidate.extractedFolder == nil,
+                  candidate.finalizationMonitor?.isRunning != true,
                   let snapshot = snapshotsByIdentity[identity]
             else {
                 continue
@@ -1352,12 +1490,18 @@ final class DayDropController: ObservableObject {
             }
         }
 
-        if discoverAutomaticFiles && !isPaused {
-            for snapshot in snapshots where scanner.isEligible(snapshot) {
-                guard !baselineIdentities.contains(snapshot.identity),
+        if discoverAutomaticFiles && !isPaused && onboardingCompleted {
+            let policy = AutomaticOrganizationPolicy(delayed: delayedOrganizationEnabled)
+            let discoveryDate = currentDate()
+            for snapshot in snapshots where scanner.isEligible(snapshot) || extractedFolders[snapshot.identity] != nil {
+                guard policy.sourceDay(
+                        for: snapshot,
+                        isBaseline: baselineIdentities.contains(snapshot.identity),
+                        at: discoveryDate
+                      ) != nil,
                       pendingCandidates[snapshot.identity] == nil
                 else { continue }
-                _ = enqueuePendingCandidate(snapshot, origin: .runtimeDownload)
+                _ = enqueuePendingCandidate(snapshot, origin: .runtimeDownload, extractedFolder: extractedFolders[snapshot.identity])
             }
         }
 
@@ -1370,34 +1514,56 @@ final class DayDropController: ObservableObject {
             guard !blockingFailureRequiresRestart else { break }
             guard !processingIdentities.contains(identity),
                   let latestSnapshot = snapshotsByIdentity[identity],
-                  scanner.isEligible(latestSnapshot),
-                  let size = latestSnapshot.size,
                   var candidate = pendingCandidates[identity]
             else { continue }
 
+            if candidate.extractedFolder != nil {
+                guard let evidence = extractedFolders[identity] else {
+                    removePendingCandidate(identity)
+                    continue
+                }
+                candidate.extractedFolder = evidence
+            } else if !scanner.isEligible(latestSnapshot) {
+                continue
+            }
+
+            if candidate.origin == .runtimeDownload {
+                guard !isPaused, onboardingCompleted else { continue }
+                guard AutomaticOrganizationPolicy(delayed: delayedOrganizationEnabled)
+                    .sourceDay(for: latestSnapshot, isBaseline: false, at: currentDate()) != nil
+                else {
+                    removePendingCandidate(identity)
+                    continue
+                }
+            }
+
             candidate.snapshot = latestSnapshot
             let observationUptime = ProcessInfo.processInfo.systemUptime
-            let finalization = candidate.finalization.observe(
-                size: size,
-                modificationDate: latestSnapshot.modificationDate,
-                atUptime: observationUptime
-            )
+            let isStable: Bool
+            if let evidence = candidate.extractedFolder {
+                isStable = candidate.folderFinalization?.observe(evidence.tree, at: observationUptime) == true
+            } else {
+                guard let size = latestSnapshot.size else { continue }
+                isStable = candidate.finalization.observe(
+                    size: size, modificationDate: latestSnapshot.modificationDate, atUptime: observationUptime
+                ) == .quiet
+            }
             pendingCandidates[identity] = candidate
-            guard finalization == .quiet,
-                  candidate.finalizationMonitor.hasBeenQuiet(
-                    for: Self.finalizationQuietInterval,
-                    atUptime: observationUptime
-                  ),
-                  Date() >= candidate.nextMoveAttempt,
-                  scanner.canAcquireExclusiveAdvisoryLock(on: latestSnapshot.url)
+            guard isStable,
+                  candidate.hasBeenQuiet(at: observationUptime),
+                  currentDate() >= candidate.nextMoveAttempt,
+                  candidate.extractedFolder != nil || scanner.canAcquireExclusiveAdvisoryLock(on: latestSnapshot.url)
             else { continue }
 
-            let processingDate = Date()
+            let processingDate = currentDate()
             let processingToday = ArchiveDay(date: processingDate)
             let sourceDay: ArchiveDay
             switch candidate.origin {
             case .runtimeDownload:
-                sourceDay = processingToday
+                guard let day = AutomaticOrganizationPolicy(delayed: delayedOrganizationEnabled)
+                    .sourceDay(for: latestSnapshot, isBaseline: false, at: processingDate)
+                else { continue }
+                sourceDay = day
             case .manualExistingFile:
                 guard let resolvedDay = ExistingFileDateResolver().archiveDay(
                     creationDate: latestSnapshot.creationDate,
@@ -1419,13 +1585,15 @@ final class DayDropController: ObservableObject {
                 sourceDay = resolvedDay
             }
 
+            let organizationGeneration = automaticOrganizationGeneration
             processingIdentities.insert(identity)
             let preparation = await archiveEngine.prepareTargetFolder(
                 for: sourceDay,
                 relativeTo: processingToday,
                 in: downloadsURL
             )
-            if case .runtimeDownload = candidate.origin, isPaused {
+            if candidate.origin == .runtimeDownload,
+               isPaused || organizationGeneration != automaticOrganizationGeneration {
                 _ = await archiveEngine.discardPreparedTargetFolderIfEmpty(
                     preparation,
                     in: downloadsURL
@@ -1489,15 +1657,14 @@ final class DayDropController: ObservableObject {
                 ownershipError = preparation.errorMessage ?? "无法准备目标日期目录。"
             }
 
-            if case .runtimeDownload = candidate.origin, isPaused {
+            if candidate.origin == .runtimeDownload,
+               isPaused || organizationGeneration != automaticOrganizationGeneration {
                 processingIdentities.remove(identity)
                 continue
             }
 
             guard let currentCandidate = pendingCandidates[identity],
-                  currentCandidate.finalizationMonitor.hasBeenQuiet(
-                    for: Self.finalizationQuietInterval
-                  ),
+                  currentCandidate.hasBeenQuiet(),
                   let revalidatedSnapshot = scanner.snapshot(at: latestSnapshot.url),
                   revalidatedSnapshot.identity == latestSnapshot.identity,
                   revalidatedSnapshot.size == latestSnapshot.size,
@@ -1507,6 +1674,13 @@ final class DayDropController: ObservableObject {
                 continue
             }
             candidate = currentCandidate
+
+            if candidate.origin == .runtimeDownload,
+               AutomaticOrganizationPolicy(delayed: delayedOrganizationEnabled)
+                .sourceDay(for: revalidatedSnapshot, isBaseline: false, at: currentDate()) != sourceDay {
+                processingIdentities.remove(identity)
+                continue
+            }
 
             let result: ArchiveFileMoveResult
             if let ownershipError {
@@ -1520,6 +1694,11 @@ final class DayDropController: ObservableObject {
                     relativeFolderPath: preparation.relativeFolderPath,
                     succeeded: false,
                     errorMessage: ownershipError
+                )
+            } else if let evidence = candidate.extractedFolder {
+                result = await archiveEngine.moveExtractedFolder(
+                    evidence, sourceDay: sourceDay, relativeTo: processingToday, in: downloadsURL,
+                    expectedTargetDirectoryIdentity: preparation.directoryIdentity
                 )
             } else {
                 result = await archiveEngine.moveFile(
@@ -1539,6 +1718,7 @@ final class DayDropController: ObservableObject {
                 destinationPath: result.destinationURL.path,
                 succeeded: result.succeeded,
                 errorMessage: result.errorMessage,
+                fileCategory: candidate.extractedFolder == nil ? nil : .other,
                 trigger: historyTrigger(for: candidate)
             )
 
@@ -1550,11 +1730,16 @@ final class DayDropController: ObservableObject {
                     unmanagedDestinationCount += 1
                 }
             } else {
-                var retryCandidate = pendingCandidates[identity] ?? candidate
-                retryCandidate.failureCount += 1
-                let backoff = min(pow(2.0, Double(retryCandidate.failureCount)), 60.0)
-                retryCandidate.nextMoveAttempt = Date().addingTimeInterval(backoff)
-                pendingCandidates[identity] = retryCandidate
+                // A setting change or pause may have cleared this candidate
+                // while the archive actor was moving it. Do not resurrect it.
+                if candidate.origin == .manualExistingFile
+                    || (!isPaused && organizationGeneration == automaticOrganizationGeneration) {
+                    var retryCandidate = pendingCandidates[identity] ?? candidate
+                    retryCandidate.failureCount += 1
+                    let backoff = min(pow(2.0, Double(retryCandidate.failureCount)), 60.0)
+                    retryCandidate.nextMoveAttempt = currentDate().addingTimeInterval(backoff)
+                    pendingCandidates[identity] = retryCandidate
+                }
                 failedCount += 1
             }
             persistenceFailed = !(await persistOperation(record)) || persistenceFailed
@@ -1595,9 +1780,23 @@ final class DayDropController: ObservableObject {
     private func enqueuePendingCandidate(
         _ snapshot: TopLevelFileSnapshot,
         origin: CandidateOrigin,
-        organizationScope: ExistingFileOrganizationScope = .topLevel
+        organizationScope: ExistingFileOrganizationScope = .topLevel,
+        extractedFolder: ExtractedFolderEvidence? = nil
     ) -> Bool {
         let observedUptime = ProcessInfo.processInfo.systemUptime
+        if let extractedFolder {
+            guard organizeExtractedFoldersEnabled, extractedFolder.folderIdentity == snapshot.identity else { return false }
+            pendingCandidates[snapshot.identity] = PendingCandidate(
+                snapshot: snapshot,
+                finalization: FileFinalizationTracker(size: nil, modificationDate: nil, observedUptime: observedUptime, quietInterval: Self.finalizationQuietInterval),
+                finalizationMonitor: nil,
+                origin: origin,
+                extractedFolder: extractedFolder,
+                folderFinalization: ExtractedFolderFinalization(tree: extractedFolder.tree, lastActivityUptime: observedUptime),
+                organizationScope: organizationScope
+            )
+            return true
+        }
         let monitor = FileFinalizationMonitor(fileURL: snapshot.url)
         do {
             try monitor.start(observedUptime: observedUptime) { [weak self] event in
@@ -1646,12 +1845,12 @@ final class DayDropController: ObservableObject {
     }
 
     private func removePendingCandidate(_ identity: String) {
-        pendingCandidates.removeValue(forKey: identity)?.finalizationMonitor.stop()
+        pendingCandidates.removeValue(forKey: identity)?.finalizationMonitor?.stop()
     }
 
     private func stopAllFinalizationMonitors() {
         for candidate in pendingCandidates.values {
-            candidate.finalizationMonitor.stop()
+            candidate.finalizationMonitor?.stop()
         }
     }
 
@@ -1729,7 +1928,7 @@ final class DayDropController: ObservableObject {
             indexedFiles = replacing ? page.records : indexedFiles + page.records
             indexedFileCursor = page.nextCursor
             indexedFileQueryCount = page.totalCount
-            if indexedFileFilter == .current {
+            if !indexedFileFilter.hasActiveFilters {
                 indexedFileCount = page.totalCount
             }
             downloadsIndexErrorMessage = nil
@@ -1855,7 +2054,7 @@ final class DayDropController: ObservableObject {
                 return
             }
         }
-        let today = ArchiveDay(date: Date())
+        let today = ArchiveDay(date: currentDate())
         var records: [OperationRecord] = []
         var succeededCount = 0
         var failedCount = 0
@@ -2330,14 +2529,25 @@ final class DayDropController: ObservableObject {
             }
             notificationObservers.append(token)
         }
+
+        let wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                await self?.handleCalendarChange()
+            }
+        }
+        workspaceObservers.append(wakeObserver)
     }
 
     private func scheduleMidnightRefresh() {
         midnightTask?.cancel()
         let calendar = DayDropCalendar.local()
-        let nextDay = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: Date()))
-            ?? Date().addingTimeInterval(24 * 60 * 60)
-        let interval = max(1, nextDay.timeIntervalSinceNow + 0.25)
+        let nextDay = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: currentDate()))
+            ?? currentDate().addingTimeInterval(24 * 60 * 60)
+        let interval = max(1, nextDay.timeIntervalSince(currentDate()) + 0.25)
 
         midnightTask = Task { [weak self] in
             try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
@@ -2350,9 +2560,41 @@ final class DayDropController: ObservableObject {
         refreshTodayFilesNow()
         if !isPaused {
             await migrateManagedFolders()
+            await processDelayedDownloadsIfNeeded()
         }
         scheduleMidnightRefresh()
     }
+
+    private func processDelayedDownloadsIfNeeded() async {
+        guard delayedOrganizationEnabled, !isPaused, onboardingCompleted else { return }
+        await scanAndProcessCandidates(discoverAutomaticFiles: true)
+    }
+
+#if DEBUG
+    /// XCTest-only entry to exercise the real coordinator against isolated stores
+    /// and temporary files. Production authorization still requires its bookmark.
+    func startWithTestFolder(_ rootURL: URL) async {
+        precondition(DayDropRuntime.isRunningUnitTests)
+        downloadsURL = rootURL.standardizedFileURL
+        hasFolderAccess = true
+        defaults.set(true, forKey: DefaultsKey.onboardingCompleted)
+        captureCurrentFilesAsBaseline()
+        startDownloadsTreeMonitor()
+        await reconcileDownloadsIndex()
+        await scanAndProcessCandidates(discoverAutomaticFiles: !isPaused)
+    }
+
+    func handleTestCalendarChange() async {
+        precondition(DayDropRuntime.isRunningUnitTests)
+        await handleCalendarChange()
+    }
+#endif
+}
+
+struct DayDropControllerStores {
+    let metadata: LocalMetadataStore
+    let history: HistoryStore
+    let index: DownloadsIndexStore
 }
 
 private enum DayDropControllerError: LocalizedError {

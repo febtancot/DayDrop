@@ -5,13 +5,14 @@ import Foundation
 enum CollisionNameResolver {
     static func availableName(
         for originalFileName: String,
+        isDirectory: Bool = false,
         isTaken: (String) -> Bool
     ) -> String {
         guard isTaken(originalFileName) else {
             return originalFileName
         }
 
-        let parts = splitFileName(originalFileName)
+        let parts = isDirectory ? (stem: originalFileName, extensionWithDot: "") : splitFileName(originalFileName)
         var suffixNumber = 1
 
         while true {
@@ -25,13 +26,14 @@ enum CollisionNameResolver {
 
     static func availableURL(
         for desiredURL: URL,
+        isDirectory: Bool = false,
         fileExists: (URL) -> Bool
     ) -> URL {
         let parentURL = desiredURL.deletingLastPathComponent()
-        let availableName = availableName(for: desiredURL.lastPathComponent) { candidateName in
-            fileExists(parentURL.appendingPathComponent(candidateName, isDirectory: false))
+        let availableName = availableName(for: desiredURL.lastPathComponent, isDirectory: isDirectory) { candidateName in
+            fileExists(parentURL.appendingPathComponent(candidateName, isDirectory: isDirectory))
         }
-        return parentURL.appendingPathComponent(availableName, isDirectory: false)
+        return parentURL.appendingPathComponent(availableName, isDirectory: isDirectory)
     }
 
     private static func splitFileName(_ fileName: String) -> (stem: String, extensionWithDot: String) {

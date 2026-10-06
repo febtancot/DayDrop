@@ -13,6 +13,7 @@ struct TopLevelFileSnapshot: Equatable, Sendable {
     let size: UInt64?
     let creationDate: Date?
     let modificationDate: Date?
+    var addedToDirectoryDate: Date? = nil
 
     var existingFileArchiveDay: ArchiveDay? {
         ExistingFileDateResolver().archiveDay(
@@ -95,6 +96,7 @@ struct FileCandidateScanner {
             .isSymbolicLinkKey,
             .fileSizeKey,
             .creationDateKey,
+            .addedToDirectoryDateKey,
             .contentModificationDateKey,
             .fileResourceIdentifierKey
         ]
@@ -107,8 +109,10 @@ struct FileCandidateScanner {
     }
 
     func snapshot(at url: URL) -> TopLevelFileSnapshot? {
-        snapshot(
-            at: url,
+        var freshURL = url
+        freshURL.removeAllCachedResourceValues()
+        return snapshot(
+            at: freshURL,
             prefetchedKeys: [
                 .isHiddenKey,
                 .isDirectoryKey,
@@ -117,6 +121,7 @@ struct FileCandidateScanner {
                 .isSymbolicLinkKey,
                 .fileSizeKey,
                 .creationDateKey,
+                .addedToDirectoryDateKey,
                 .contentModificationDateKey,
                 .fileResourceIdentifierKey
             ]
@@ -174,7 +179,8 @@ struct FileCandidateScanner {
             isSymbolicLink: values.isSymbolicLink ?? false,
             size: fileSize,
             creationDate: values.creationDate,
-            modificationDate: values.contentModificationDate
+            modificationDate: values.contentModificationDate,
+            addedToDirectoryDate: values.addedToDirectoryDate
         )
     }
 }

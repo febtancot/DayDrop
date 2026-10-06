@@ -6,6 +6,33 @@ The native MVP uses a SwiftUI `MenuBarExtra` with window style, an AppKit folder
 
 Automatic discovery and the ordinary manual action remain root-only. The opt-in deep action performs one bounded expansion into immediate, non-hidden, non-package, non-symbolic-link subfolders; it skips DayDrop-owned archive roots. Pending nested candidates retain their exact file-system identity and are revalidated at a maximum depth of two before the archive engine reacquires its advisory lock and moves them.
 
+Version 1.4.0 adds intact top-level extracted-directory moves. `ExtractedFolderRecognizer`
+matches ZIP/RAR/RAR5/7z manifests to output names, creation order, and complete relative
+path/type/size metadata. The archive reader links macOS `libarchive.2.tbd`; its public
+3.7.4 headers are vendored with license attribution, while the decoder is supplied by
+the OS. It enables only the required archive formats and the no-filter pipeline, and
+never extracts or launches an external program. Archive bytes are read locally for
+recognition; child-file bodies are not inspected or uploaded.
+
+`ExtractedFolderTreeScanner` walks with descriptor-relative `openat`/`fstatat`, rejects
+links and cross-volume entries, and records inode/size/mtime/ctime. A ten-second quiet
+window and nested FSEvents gate the move. `ExtractedFolderMoveGuard` revalidates the
+tree and source archive, holds cooperative file locks, and retains directory descriptors;
+`ArchiveEngine` then uses `renamex_np(RENAME_EXCL)` without merge/copy fallback. Manual
+deep discovery protects plausible incomplete extractions from being flattened.
+
+Resource bounds: at most 512 candidate source archives and 512 managed folders per
+recognition pass, 10,000 manifest/tree entries, 20 GiB represented contents, a five-second
+deadline checked during archive/tree I/O and entry enumeration, and 64 MiB of archive read I/O. Automatic directory moves retain
+at most 2,048 descendant descriptors; exceeding a bound or encountering resource/lock
+failure leaves the source in place. These are conservative limits, not performance
+acceptance for large folders. Archive-origin and non-cooperating-writer uncertainty
+remain explicit domain limits.
+
+RAR main-header volume flags are checked before accepting a manifest because libarchive
+can report EOF for an incomplete first volume. Multi-volume and SFX RAR inputs are
+intentionally skipped, in addition to encrypted archives.
+
 ## Components
 
 - **App/UI:** menu-bar popover, standard-titlebar onboarding window, clickable today module, searchable/filterable paged history with CSV/JSON export, full Settings destination, current-version display, manual update action, a shared compact toggle style, and an opaque appearance-aware panel surface that prevents desktop-image tint from reducing content contrast.
@@ -27,7 +54,23 @@ vnode and size/modification-date quiet windows → advisory lock plus final iden
 metadata revalidation → route planning → collision-safe move → SQLite history
 persistence → today-list refresh → optional batch notification.
 
+With `DayDrop.DelayedOrganizationEnabled` enabled, `AutomaticOrganizationPolicy`
+filters automatic candidates before opening finalization descriptors. It compares
+the date added to Downloads (creation/modification fallback) against the current local
+start of day and preserves that date for routing. Midnight, workspace wake, startup,
+reauthorization, and resume trigger overdue scans. Files waiting until tomorrow do
+not retain descriptors or drive the one-second retry loop. Setting changes clear
+automatic pending candidates and invalidate preparation under the previous setting;
+manual candidates keep the existing immediate path.
+
 Index flow: start recursive FSEvents stream → recursive metadata-only baseline/reconciliation scan → exact-path and unique-identity matching → transactional current-state upsert plus change-log append → paged current/unavailable file query. Startup scanning reconciles changes made while the app was offline; dropped/coalesced events also resolve through a full scan.
+
+Index reconciliation coalesces identical scan entries by path and rejects conflicting
+entries before changing stored state. Legacy duplicate current rows are matched by
+path and filesystem identity without a trapping dictionary initializer; the oldest
+matching row remains current, redundant rows become unavailable, and their history
+is retained. Redundant rows are excluded from move inference. This repairs the
+startup crash that previously prevented delayed organization from running.
 
 History flow: legacy JSON import by stable UUID → deterministic metadata-only file classification → indexed SQLite persistence → typed search/filter query → cursor pagination → bounded double-click Finder resolution inside the authorized Downloads root → optional filtered CSV/JSON export selected by the user. The unified File Query UI defaults to current indexed Downloads files and retains operation history as a separate scope.
 
@@ -79,7 +122,7 @@ This command generates and builds the arm64 Debug app, terminates DayDrop, moves
 
 - `SMAppService.mainApp` is the macOS 13+ login-item API.
 - Persistent Downloads access uses a security-scoped folder bookmark rather than assuming unrestricted home-directory access.
-- Startup and resume capture a file-identity baseline before monitoring, so offline or paused files require explicit manual organization.
+- Startup and resume capture a file-identity baseline before monitoring. Immediate mode excludes those identities; delayed mode selects yesterday's and older files regardless of the baseline, so overdue downloads survive app restarts without a persisted pending queue.
 - Per-file finalization monitoring is generic macOS vnode observation rather than an
   NDM private API. It closes the preallocated-size regression because writes and
   modification-date changes reset the quiet window. It cannot convert an indefinitely

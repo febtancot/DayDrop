@@ -1,7 +1,142 @@
+import SQLite3
 import XCTest
 @testable import DayDrop
 
 final class DownloadsIndexStoreTests: XCTestCase {
+    func testDuplicateScanEntriesDoNotPersistDuplicateCurrentPaths() async throws {
+        let databaseURL = temporaryDatabaseURL()
+        defer { removeDatabase(at: databaseURL) }
+        let store = try DownloadsIndexStore(databaseURL: databaseURL)
+        let file = snapshot(identity: "1:99", path: "report.txt", size: 10)
+        let first = try await store.reconcile([file, file])
+        XCTAssertEqual(first.indexedFileCount, 1)
+        let page = try await store.page()
+        XCTAssertEqual(page.totalCount, 1)
+        // A restart used to trap when rebuilding the path dictionary.
+        let restarted = try DownloadsIndexStore(databaseURL: databaseURL)
+        let second = try await restarted.reconcile([file])
+        XCTAssertEqual(second.changeCount, 0)
+    }
+
+    func testExistingDuplicatePathsRecoverOnRestartWithoutDeletingHistory() async throws {
+        let databaseURL = temporaryDatabaseURL()
+        defer { removeDatabase(at: databaseURL) }
+        let store = try DownloadsIndexStore(databaseURL: databaseURL)
+        _ = try await store.reconcile([])
+        let file = snapshot(identity: "1:99", path: "report.txt", size: 10)
+        _ = try await store.reconcile([file])
+        let originalPage = try await store.page()
+        let original = try XCTUnwrap(originalPage.records.first)
+        let originalChanges = try await store.changes()
+        try duplicateCurrentRecord(original.id, in: databaseURL)
+
+        let restarted = try DownloadsIndexStore(databaseURL: databaseURL)
+        let summary = try await restarted.reconcile([file])
+        let current = try await restarted.page()
+        let all = try await restarted.page(filter: DownloadFileFilter(presence: .all))
+        let changes = try await restarted.changes()
+        XCTAssertEqual(summary.indexedFileCount, 1)
+        XCTAssertEqual(summary.unavailable, 1)
+        XCTAssertEqual(current.records.map(\.id), [original.id])
+        XCTAssertEqual(all.totalCount, 2)
+        XCTAssertTrue(Set(originalChanges.map(\.id)).isSubset(of: Set(changes.map(\.id))))
+        let repeated = try await restarted.reconcile([file])
+        XCTAssertEqual(repeated.changeCount, 0)
+    }
+
+    func testConflictingScanPreservesLastCompleteIndexAndHistory() async throws {
+        let databaseURL = temporaryDatabaseURL()
+        defer { removeDatabase(at: databaseURL) }
+        let store = try DownloadsIndexStore(databaseURL: databaseURL)
+        let file = snapshot(identity: "1:99", path: "report.txt", size: 10)
+        _ = try await store.reconcile([file])
+        let originalPage = try await store.page()
+        let originalChanges = try await store.changes()
+
+        for conflicting in [
+            snapshot(identity: "1:100", path: "report.txt", size: 10),
+            snapshot(identity: "1:99", path: "report.txt", size: 20)
+        ] {
+            do {
+                _ = try await store.reconcile([file, conflicting])
+                XCTFail("An inconsistent scan must be rejected")
+            } catch DownloadsIndexStoreError.conflictingSnapshots {
+                // The controller catches this recoverable error and continues startup.
+            }
+            let currentPage = try await store.page()
+            let changes = try await store.changes()
+            XCTAssertEqual(currentPage, originalPage)
+            XCTAssertEqual(changes, originalChanges)
+        }
+    }
+
+    func testDuplicateRecoveryDoesNotInventMoveToNewHardLink() async throws {
+        let databaseURL = temporaryDatabaseURL()
+        defer { removeDatabase(at: databaseURL) }
+        let store = try DownloadsIndexStore(databaseURL: databaseURL)
+        let file = snapshot(identity: "1:99", path: "report.txt", size: 10)
+        _ = try await store.reconcile([file])
+        let page = try await store.page()
+        let original = try XCTUnwrap(page.records.first)
+        try duplicateCurrentRecord(original.id, in: databaseURL)
+
+        let hardLink = snapshot(identity: "1:99", path: "link.txt", size: 10)
+        let summary = try await store.reconcile([file, hardLink])
+        let current = try await store.page()
+        XCTAssertEqual(summary.indexedFileCount, 2)
+        XCTAssertEqual(summary.discovered, 1)
+        XCTAssertEqual(summary.unavailable, 1)
+        XCTAssertEqual(summary.renamed, 0)
+        XCTAssertEqual(summary.moved, 0)
+        XCTAssertEqual(Set(current.records.map(\.relativePath)), ["report.txt", "link.txt"])
+    }
+
+    func testSamePathReplacementRecoversFromDuplicateOldRows() async throws {
+        let databaseURL = temporaryDatabaseURL()
+        defer { removeDatabase(at: databaseURL) }
+        let store = try DownloadsIndexStore(databaseURL: databaseURL)
+        _ = try await store.reconcile([snapshot(identity: "1:99", path: "report.txt", size: 10)])
+        let page = try await store.page()
+        try duplicateCurrentRecord(try XCTUnwrap(page.records.first).id, in: databaseURL)
+
+        let replacement = snapshot(identity: "1:100", path: "report.txt", size: 20)
+        let summary = try await store.reconcile([replacement])
+        let current = try await store.page()
+        let all = try await store.page(filter: DownloadFileFilter(presence: .all))
+        XCTAssertEqual(summary.discovered, 1)
+        XCTAssertEqual(summary.unavailable, 2)
+        XCTAssertEqual(current.records.map(\.fileSystemIdentity), ["1:100"])
+        XCTAssertEqual(all.totalCount, 3)
+        let repeated = try await store.reconcile([replacement])
+        XCTAssertEqual(repeated.changeCount, 0)
+    }
+
+    func testCanonicallyEquivalentDuplicatePathsAreCoalesced() async throws {
+        let databaseURL = temporaryDatabaseURL()
+        defer { removeDatabase(at: databaseURL) }
+        let store = try DownloadsIndexStore(databaseURL: databaseURL)
+        let composed = snapshot(identity: "1:99", path: "caf\u{00E9}.txt", size: 10)
+        let decomposed = snapshot(identity: "1:99", path: "cafe\u{0301}.txt", size: 10)
+        let summary = try await store.reconcile([composed, decomposed])
+        XCTAssertEqual(summary.indexedFileCount, 1)
+        let repeated = try await store.reconcile([decomposed])
+        XCTAssertEqual(repeated.changeCount, 0)
+    }
+
+    private func duplicateCurrentRecord(_ id: UUID, in databaseURL: URL) throws {
+        var database: OpaquePointer?
+        XCTAssertEqual(sqlite3_open(databaseURL.path, &database), SQLITE_OK)
+        defer { sqlite3_close(database) }
+        let sql = """
+            INSERT INTO indexed_files
+            SELECT '\(UUID().uuidString)', file_system_identity, relative_path, file_name,
+                   size, creation_date, modification_date, file_category, classifier_version,
+                   is_package, first_seen_at + 1, last_seen_at, is_present, unavailable_since
+            FROM indexed_files WHERE id = '\(id.uuidString)';
+            """
+        XCTAssertEqual(sqlite3_exec(database, sql, nil, nil, nil), SQLITE_OK)
+    }
+
     func testReconciliationRecordsRenameMoveModifyCopyAndUnavailable() async throws {
         let databaseURL = temporaryDatabaseURL()
         defer { removeDatabase(at: databaseURL) }
@@ -131,6 +266,80 @@ final class DownloadsIndexStoreTests: XCTestCase {
         XCTAssertTrue(changes.isEmpty)
     }
 
+    func testModificationDateSortSupportsBothDirectionsPagingAndUnknownDates() async throws {
+        let databaseURL = temporaryDatabaseURL()
+        defer { removeDatabase(at: databaseURL) }
+        let store = try DownloadsIndexStore(databaseURL: databaseURL)
+        let baseDate = Date(timeIntervalSince1970: 10_000)
+        _ = try await store.reconcile([
+            snapshot(
+                identity: "1:31",
+                path: "oldest.txt",
+                size: 1,
+                modifiedAt: baseDate
+            ),
+            snapshot(
+                identity: "1:32",
+                path: "middle.txt",
+                size: 1,
+                modifiedAt: baseDate.addingTimeInterval(100)
+            ),
+            snapshot(
+                identity: "1:33",
+                path: "newest.txt",
+                size: 1,
+                modifiedAt: baseDate.addingTimeInterval(200)
+            ),
+            snapshot(identity: "1:34", path: "unknown.txt", size: 1, modifiedAt: nil)
+        ])
+
+        var newestFirst = DownloadFileFilter.current
+        newestFirst.modificationSortOrder = .newestFirst
+        let descendingPaths = try await allPaths(
+            in: store,
+            filter: newestFirst,
+            pageSize: 2
+        )
+        XCTAssertEqual(descendingPaths, [
+            "newest.txt", "middle.txt", "oldest.txt", "unknown.txt"
+        ])
+
+        var oldestFirst = DownloadFileFilter.current
+        oldestFirst.modificationSortOrder = .oldestFirst
+        let ascendingPaths = try await allPaths(
+            in: store,
+            filter: oldestFirst,
+            pageSize: 2
+        )
+        XCTAssertEqual(ascendingPaths, [
+            "oldest.txt", "middle.txt", "newest.txt", "unknown.txt"
+        ])
+    }
+
+    func testModificationDateSortPaginatesStablyAcrossTiesAndUnknownDates() async throws {
+        let databaseURL = temporaryDatabaseURL()
+        defer { removeDatabase(at: databaseURL) }
+        let store = try DownloadsIndexStore(databaseURL: databaseURL)
+        let tiedDate = Date(timeIntervalSince1970: 20_000)
+        _ = try await store.reconcile([
+            snapshot(identity: "1:41", path: "tie-a.txt", size: 1, modifiedAt: tiedDate),
+            snapshot(identity: "1:42", path: "tie-b.txt", size: 1, modifiedAt: tiedDate),
+            snapshot(identity: "1:43", path: "unknown-a.txt", size: 1, modifiedAt: nil),
+            snapshot(identity: "1:44", path: "unknown-b.txt", size: 1, modifiedAt: nil)
+        ])
+
+        for order in DownloadFileModificationSortOrder.allCases {
+            var filter = DownloadFileFilter.current
+            filter.modificationSortOrder = order
+            let unpaged = try await store.page(filter: filter, limit: 100).records
+            let paged = try await allRecords(in: store, filter: filter, pageSize: 1)
+
+            XCTAssertEqual(paged.map(\.id), unpaged.map(\.id))
+            XCTAssertEqual(Set(paged.map(\.id)).count, 4)
+            XCTAssertEqual(paged.map(\.modificationDate), [tiedDate, tiedDate, nil, nil])
+        }
+    }
+
     func testAmbiguousHardLinkIdentityDoesNotBecomeFalseMove() async throws {
         let databaseURL = temporaryDatabaseURL()
         defer { removeDatabase(at: databaseURL) }
@@ -178,7 +387,7 @@ final class DownloadsIndexStoreTests: XCTestCase {
         identity: String,
         path: String,
         size: UInt64,
-        modifiedAt: Date = Date(timeIntervalSince1970: 100)
+        modifiedAt: Date? = Date(timeIntervalSince1970: 100)
     ) -> DownloadFileSnapshot {
         DownloadFileSnapshot(
             fileSystemIdentity: identity,
@@ -190,6 +399,30 @@ final class DownloadsIndexStoreTests: XCTestCase {
             fileCategory: FileTypeClassifier.category(forFileName: path),
             isPackage: false
         )
+    }
+
+    private func allPaths(
+        in store: DownloadsIndexStore,
+        filter: DownloadFileFilter,
+        pageSize: Int
+    ) async throws -> [String] {
+        try await allRecords(in: store, filter: filter, pageSize: pageSize)
+            .map(\.relativePath)
+    }
+
+    private func allRecords(
+        in store: DownloadsIndexStore,
+        filter: DownloadFileFilter,
+        pageSize: Int
+    ) async throws -> [IndexedDownloadFile] {
+        var records: [IndexedDownloadFile] = []
+        var cursor: DownloadFileCursor?
+        repeat {
+            let page = try await store.page(filter: filter, after: cursor, limit: pageSize)
+            records.append(contentsOf: page.records)
+            cursor = page.nextCursor
+        } while cursor != nil
+        return records
     }
 
     private func temporaryDatabaseURL() -> URL {

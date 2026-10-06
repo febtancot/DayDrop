@@ -103,11 +103,11 @@ public final class BatchNotificationService: @unchecked Sendable {
     private static func message(succeededCount: Int, failedCount: Int) -> String {
         switch (succeededCount, failedCount) {
         case (_, 0):
-            return "已整理 \(succeededCount) 个文件。"
+            return "已整理 \(succeededCount) 个项目。"
         case (0, _):
-            return "\(failedCount) 个文件整理失败，原文件已保留。"
+            return "\(failedCount) 个项目整理失败，原项目已保留。"
         default:
-            return "已整理 \(succeededCount) 个文件，\(failedCount) 个失败。"
+            return "已整理 \(succeededCount) 个项目，\(failedCount) 个失败。"
         }
     }
 }

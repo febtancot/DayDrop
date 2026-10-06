@@ -426,10 +426,36 @@ actor ArchiveEngine {
         expectedSourceIdentity: String? = nil,
         expectedTargetDirectoryIdentity: String? = nil
     ) -> ArchiveFileMoveResult {
+        moveItem(at: sourceURL, sourceDay: sourceDay, relativeTo: today, in: rootURL,
+                 expectedSourceIdentity: expectedSourceIdentity,
+                 expectedTargetDirectoryIdentity: expectedTargetDirectoryIdentity, folderEvidence: nil)
+    }
+
+    func moveExtractedFolder(
+        _ evidence: ExtractedFolderEvidence,
+        sourceDay: ArchiveDay,
+        relativeTo today: ArchiveDay,
+        in rootURL: URL,
+        expectedTargetDirectoryIdentity: String? = nil
+    ) -> ArchiveFileMoveResult {
+        moveItem(at: evidence.folderURL, sourceDay: sourceDay, relativeTo: today, in: rootURL,
+                 expectedSourceIdentity: evidence.folderIdentity,
+                 expectedTargetDirectoryIdentity: expectedTargetDirectoryIdentity, folderEvidence: evidence)
+    }
+
+    private func moveItem(
+        at sourceURL: URL,
+        sourceDay: ArchiveDay,
+        relativeTo today: ArchiveDay,
+        in rootURL: URL,
+        expectedSourceIdentity: String?,
+        expectedTargetDirectoryIdentity: String?,
+        folderEvidence: ExtractedFolderEvidence?
+    ) -> ArchiveFileMoveResult {
         let route = router.route(for: sourceDay, relativeTo: today)
         let root = rootURL.standardizedFileURL
 
-        guard isSafeFileSource(sourceURL, inside: root, maximumDepth: 2) else {
+        guard isSafeFileSource(sourceURL, inside: root, maximumDepth: folderEvidence == nil ? 2 : 1) else {
             return ArchiveFileMoveResult(
                 sourceURL: sourceURL,
                 destinationURL: root,
@@ -453,13 +479,13 @@ actor ArchiveEngine {
 
         let desiredURL = targetFolder.appendingPathComponent(
             sourceURL.lastPathComponent,
-            isDirectory: false
+            isDirectory: folderEvidence != nil
         )
         let sourceAlreadyAtDestination = sourceURL.standardizedFileURL
             == desiredURL.standardizedFileURL
         let destinationURL = sourceAlreadyAtDestination
             ? sourceURL.standardizedFileURL
-            : CollisionNameResolver.availableURL(for: desiredURL) {
+            : CollisionNameResolver.availableURL(for: desiredURL, isDirectory: folderEvidence != nil) {
                 operations.fileExists($0)
             }
 
@@ -480,8 +506,14 @@ actor ArchiveEngine {
                 throw ArchiveEngineError.destinationIdentityChanged(targetFolder)
             }
 
-            guard let heldLock = HeldAdvisoryFileLock(url: sourceURL) else {
-                throw ArchiveEngineError.sourceIsBusy(sourceURL)
+            let heldLock: AnyObject
+            if let folderEvidence {
+                heldLock = try ExtractedFolderMoveGuard(evidence: folderEvidence, rootURL: root)
+            } else {
+                guard let lock = HeldAdvisoryFileLock(url: sourceURL) else {
+                    throw ArchiveEngineError.sourceIsBusy(sourceURL)
+                }
+                heldLock = lock
             }
             if let expectedSourceIdentity,
                operations.itemIdentity(sourceURL) != expectedSourceIdentity {
@@ -498,7 +530,15 @@ actor ArchiveEngine {
                 )
             }
             try withExtendedLifetime(heldLock) {
-                try operations.moveItem(sourceURL, destinationURL)
+                if folderEvidence != nil {
+                    // One exclusive same-volume rename; never merge, replace,
+                    // partially copy, or flatten an extracted directory.
+                    guard renamex_np(sourceURL.path, destinationURL.path, UInt32(RENAME_EXCL)) == 0 else {
+                        throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+                    }
+                } else {
+                    try operations.moveItem(sourceURL, destinationURL)
+                }
             }
             return ArchiveFileMoveResult(
                 sourceURL: sourceURL,

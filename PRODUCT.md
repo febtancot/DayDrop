@@ -2,7 +2,7 @@
 
 ## Purpose
 
-DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads folder tidy by moving completed top-level downloads into date-based folders. It also maintains a read-only, recursive local index so files saved directly into any nested Downloads subfolder remain searchable without being reorganized. Users can explicitly request a one-level deep reorganization only when they accept that existing folder grouping may be disrupted. The product promise is **“Downloads, day by day.”**
+DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads folder tidy by moving completed top-level downloads into date-based folders. Version 1.4.0 also recognizes extracted ZIP, RAR, and 7z folders against their source archive manifests and moves a verified folder as one intact directory. A read-only recursive local index keeps nested files searchable. Users can explicitly request a one-level deep reorganization only when they accept that existing folder grouping may be disrupted. The product promise is **“Downloads, day by day.”**
 
 ## Target users and outcomes
 
@@ -14,6 +14,8 @@ DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads 
 
 - First-run explanation, Downloads-folder authorization, login-item choice, and an explicit choice before existing files are organized.
 - Event-driven monitoring of top-level files in the selected Downloads folder.
+- Optional **延迟整理** in Settings, off by default: keep today's downloads at the root and organize yesterday's and older files on the next local day. Startup and wake catch up after downtime; manual organization remains available immediately.
+- **整理解压文件夹** is enabled by default in version 1.4.0 and can be disabled in Settings. It requires a remaining source ZIP/RAR/7z within authorized Downloads, a compatible output name and creation order, and a complete relative-path/type/size match. Already organized archives remain discoverable. Candidates must stay quiet for ten seconds; moves preserve the entire tree and obey pause/delayed organization. Missing, encrypted, multi-volume, ambiguous, unsafe, or over-limit evidence leaves the folder in place.
 - A metadata-only recursive index of regular files and packages throughout the Downloads hierarchy. The index follows neither directory nor file symbolic links, never moves nested files, and remains active when automatic organization is paused.
 - Recursive FSEvents notifications trigger debounced reconciliation scans. Startup reconciliation recovers changes made while DayDrop was not running; an incomplete scan never marks unseen items unavailable.
 - File queries search names and relative paths across current files, files no longer found in Downloads, and deterministic file-type categories. Current files are the default scope.
@@ -47,6 +49,7 @@ DayDrop is a lightweight macOS menu-bar utility that keeps the user's Downloads 
 - Frequently used login-launch and notification settings remain visible as compact controls in the main panel and are mirrored in the full Settings page. Both surfaces call the same runtime methods rather than maintaining independent UI-only state.
 - The welcome/setup page opens automatically before first-run completion and can later be reopened from **设置 → 帮助 → 重新打开欢迎页面**. Reopening it does not erase existing authorization or automatically opt into organizing existing files.
 - **立即整理现有文件** remains top-level only. **深度整理子文件夹…** is a separate destructive action; cancelling its confirmation performs no organization scan or move. Background read-only indexing is independent of both actions.
+- With extracted-folder organization enabled, manual actions move a recognized top-level extraction intact. Deep organization does not descend into recognized or plausible still-incomplete extractions. Today's archive list also displays folders with a folder icon.
 
 ## Out of scope
 

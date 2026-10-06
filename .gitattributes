@@ -1,0 +1,2 @@
+# Keep upstream indentation in vendored libarchive public headers.
+DayDrop/Extraction/Vendor/*.h whitespace=-space-before-tab

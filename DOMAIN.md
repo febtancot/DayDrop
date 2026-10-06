@@ -3,9 +3,11 @@
 ## Glossary
 
 - **Archive root:** the user-authorized Downloads folder.
-- **Top-level file:** a regular file directly inside the archive root; DayDrop never imports an existing folder.
+- **Top-level file:** a regular file directly inside the archive root.
+- **Recognized extracted folder:** a top-level, non-hidden, non-package directory whose complete structure and file sizes match one remaining ZIP/RAR/7z archive, whose output name is compatible, and which appeared no earlier than the archive. It is moved intact, not recursively reorganized.
 - **Completion date:** the local calendar date when a new runtime download is confirmed complete.
 - **Source date:** the creation date of a manually imported existing file, falling back to modification date.
+- **Delayed download date:** the date added to Downloads, falling back to creation date and then modification date. Delayed automatic organization uses this date for both the local-day eligibility check and archive routing.
 - **Managed day folder:** a folder explicitly created or safely reclaimed by DayDrop, marked with its full `YYYY-MM-DD` date, and bound to a persisted filesystem identity.
 - **Recent:** a source date whose natural-day distance from today is 0 through 14 inclusive.
 - **Operation record:** one permanent local success or failure entry for a file move or managed-folder migration, including its deterministic file-type category and trigger.
@@ -20,13 +22,15 @@ A file has one full source date. That date maps to one expected relative archive
 
 1. A root-directory event reveals a previously unseen top-level file.
 2. Temporary or hidden files remain ineligible.
+   When delayed organization is enabled, files dated today or later also wait before
+   finalization monitoring begins. Midnight, wake, startup, and resume rescan overdue files.
 3. DayDrop opens an event-only descriptor for the candidate inode. Writes, extension,
    attribute changes, rename, deletion, or revocation restart or invalidate finalization.
 4. File size and modification time must remain unchanged for two seconds while the
    descriptor monitor is also quiet. Failure to start or retain the monitor fails closed.
 5. Immediately before moving, DayDrop revalidates path identity and metadata and must
-   acquire an advisory lock. A completed runtime download receives today's local date;
-   a manual import receives its file metadata date.
+   acquire an advisory lock. An immediate runtime download receives today's local date;
+   a delayed download retains its download date, and a manual import receives its file metadata date.
 6. The file moves to the collision-safe destination and the managed-folder registry and operation history update.
 7. Before a managed folder changes hierarchy, DayDrop atomically persists a migration intent with the expected destination state; startup recovery resumes or finalizes that intent without guessing from a numeric path.
 8. During the readable-name upgrade, an unregistered legacy numeric folder may
@@ -34,6 +38,17 @@ A file has one full source date. That date maps to one expected relative archive
    existing file inside it and the operation date resolves the old route to one
    unambiguous full date. The folder then receives the normal ownership marker
    and follows the same restartable migration path.
+
+## Extracted-folder lifecycle
+
+1. Read source-archive headers locally through the system libarchive library. Candidate archives come from the root, the read-only index, and identity-bound managed day folders; no external extraction program is launched.
+2. Match the archive's stored root or a wrapper named after the archive, including common numbered duplicate names. Relative paths, entry types, and sizes must match exactly, excluding Finder/AppleDouble metadata. A folder predating the source, or matching multiple sources, remains untouched.
+3. Observe the complete directory tree, including inode, size, modification time, and change time. Nested FSEvents reset its ten-second quiet window. Delay/pause policies still apply; a folder waiting until tomorrow does not retain finalization monitors.
+4. Before moving, revalidate source archive identity/metadata, folder identity, and the full tree; retain cooperative locks on child files and directory descriptors. A busy, replaced, linked, or changed item aborts the move.
+5. Use an exclusive same-volume directory rename. Never merge into a same-named folder, flatten the tree, or fall back to a partial copy. A collision appends a suffix to the whole directory name.
+6. Record the move in the existing local history and display the folder in today's archive. Ordinary folders and unsupported cases remain at their current paths. Deep manual organization also skips plausible incomplete extraction trees.
+
+This is conservative association evidence, not universal operating-system provenance. A manually created directory identical to an archive's layout cannot always be distinguished from an extraction. Deleted source archives, encrypted/multi-volume or unreadable manifests, and ambiguous matches are intentionally not inferred from names alone.
 
 ## Read-only index lifecycle
 
@@ -64,7 +79,7 @@ Opening the **今日下载** module is a domain action, not only Finder navigati
 - A same-year date older than 14 natural days uses
   `Month YYYY-MM/Day YYYY-MM-DD/`; a recent date remains a shallow
   `Day YYYY-MM-DD/` folder.
-- Only root-level regular files are imported; existing folders are not.
+- Automatic imports cover root-level regular files and recognized extracted folders. A recognized folder moves as one item; nested files retain their structure. Arbitrary existing folders are never automatic candidates.
 - A destination collision appends ` (n)` before the last extension and never overwrites.
 - A failed move leaves the source in place.
 - Operation history is retained locally without an automatic age or count limit. Search, filtering, and export never change or delete downloaded files.
@@ -81,7 +96,7 @@ Opening the **今日下载** module is a domain action, not only Finder navigati
 - A migration target must either remain absent as recorded or retain the exact recorded identity and matching date marker.
 - Only empty month/year containers explicitly marked as DayDrop-created are eligible for cleanup.
 - The registry retains the full date even when the visible directory contains only month and day.
-- Existing files present at app startup are excluded from automatic import unless the user explicitly requests manual organization.
+- With delayed organization off, startup and resume baselines exclude existing files from automatic import. Enabling delayed organization opts into organizing yesterday's and older top-level files, including files present at startup or resume. Today's, future-dated, and undated files remain untouched automatically; explicit manual actions bypass the delay.
 - Filesystem quietness is evidence that writes have stopped, not a universal download
   completion protocol. A non-cooperating writer may pause longer than the quiet window;
   real download-manager compatibility remains an independent acceptance requirement.

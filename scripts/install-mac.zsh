@@ -6,6 +6,21 @@ script_dir=${0:A:h}
 project_dir=${script_dir:h}
 source_app="$project_dir/build/DerivedData/Build/Products/Debug/DayDrop.app"
 target_app="/Applications/DayDrop.app"
+source_description="开发版"
+
+if (( $# > 0 )); then
+    if (( $# != 2 )) || [[ "$1" != "--app" ]]; then
+        print -u2 "用法：npm run install:mac -- [--app /absolute/path/DayDrop.app]"
+        exit 2
+    fi
+    source_app="$2"
+    source_description="指定版本"
+fi
+source_app="${source_app:A}"
+[[ "$source_app" != "$target_app" ]] || {
+    print -u2 "错误：安装来源不能是目标应用自身。"
+    exit 1
+}
 current_user="$(id -un)"
 trash_root="/Users/${current_user}/.Trash"
 backup_stamp="$(date '+%Y%m%d-%H%M%S')"
@@ -14,6 +29,16 @@ if [[ ! -d "$source_app" ]]; then
     print -u2 "错误：找不到构建产物：$source_app"
     exit 1
 fi
+
+# Validate a supplied Release bundle before stopping or backing up the app.
+[[ "$(plutil -extract CFBundleIdentifier raw -o - "$source_app/Contents/Info.plist")" == "com.liuyuhang.DayDrop" ]] || {
+    print -u2 "错误：来源应用不是 DayDrop，未替换本地应用。"
+    exit 1
+}
+codesign --verify --deep --strict --verbose=2 "$source_app" || {
+    print -u2 "错误：来源应用签名校验失败，未替换本地应用。"
+    exit 1
+}
 
 if [[ ! -d "$trash_root" || "${trash_root:A}" != /Users/*/.Trash ]]; then
     print -u2 "错误：无法确认当前用户的废纸篓目录。"
@@ -59,10 +84,10 @@ restore_previous_version() {
     fi
 }
 
-print "正在安装测试版到 /Applications…"
+print "正在安装 DayDrop $source_description 到 /Applications…"
 if ! ditto "$source_app" "$target_app"; then
     restore_previous_version
-    print -u2 "错误：复制测试版失败。"
+    print -u2 "错误：复制应用失败。"
     exit 1
 fi
 
@@ -74,7 +99,7 @@ fi
 
 print "正在启动安装后的 DayDrop…"
 if ! open "$target_app"; then
-    print -u2 "测试版已安装，但启动失败：$target_app"
+    print -u2 "应用已安装，但启动失败：$target_app"
     exit 1
 fi
 

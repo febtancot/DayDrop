@@ -60,7 +60,7 @@ struct OnboardingView: View {
     private var folderAccessStep: some View {
         SetupCard(step: "1", title: "选择“下载”文件夹") {
             VStack(alignment: .leading, spacing: 12) {
-                Text("macOS 需要你明确授权。DayDrop 默认只处理所选文件夹顶层的文件，不会读取文件内容；深度整理下一层文件夹需要你另行确认。")
+                Text("macOS 需要你明确授权。DayDrop 整理顶层文件，并核对 ZIP、RAR、7z 清单后整体归档解压文件夹。识别只在本机进行；深度整理下一层文件夹中的文件需要另行确认。")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -121,7 +121,7 @@ struct OnboardingView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("立即整理已有文件")
                             .font(.subheadline.weight(.medium))
-                        Text("仅整理所选文件夹顶层已有的文件，并按创建日期归档。已有文件夹不会移动。")
+                        Text("整理顶层已有文件与能识别的解压文件夹。文件夹会整体移动，内部结构保持不变；普通文件夹保持原位。")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)

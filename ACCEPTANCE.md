@@ -20,6 +20,28 @@ This matrix separates deterministic automated evidence from signed-app and real-
 | AC-14 | Denied folder permission cannot be bypassed | Bookmark/entitlement checks; signed denial flow required | Automated boundary pass; manual pending |
 | AC-15 | File organization, history, and settings work offline; update checks fail safely without affecting organization | Network-disabled run and updater failure-isolation check required | Architectural separation pass; manual pending |
 
+## Delayed organization
+
+| ID | Acceptance criterion | Evidence | Status |
+| --- | --- | --- | --- |
+| DO-01 | **延迟整理** defaults off, persists, and leaves explicit manual actions immediate | Isolated UserDefaults/controller recreation test and source audit | Automated/static pass; Settings interaction pending |
+| DO-02 | Today's files remain at the root; yesterday's and older files retain their download day | Local-midnight, DST, year rollover, baseline, date precedence/fallback, missing/future-date tests; real temporary-file move with an injected next-day date | Automated component pass |
+| DO-03 | Midnight, wake, startup, and resume catch up overdue files while pause prevents automatic moves | Lifecycle source audit; installed overnight/sleep/restart and toggle-during-processing checks required | Static integration pass; real lifecycle acceptance pending |
+| DO-04 | Duplicate index paths cannot crash startup before delayed organization runs | A seeded legacy database reproduced the installed crash; regression tests cover recovery with history retention, repeated scan entries, conflicting snapshots, same-path replacement, Unicode-equivalent paths, and hard-link inference. September 24 installed Debug startup automatically moved 36 September 23 files into their matching day folder with unchanged filesystem identities; the remaining regular document was advisory-locked and its companion file was hidden | 148 tests pass; installed startup recovery pass; real overnight/wake acceptance remains pending |
+
+## Extracted folders
+
+| ID | Acceptance criterion | Evidence | Status |
+| --- | --- | --- | --- |
+| EX-01 | ZIP, 7z, RAR3, and RAR5 manifests support complete-folder association | Real archive fixtures, stored-root/wrapper layout, numbered names, Unicode paths, path/type/size mismatch and ambiguity tests | Automated pass |
+| EX-02 | Source archives remain usable after DayDrop organizes or collision-renames them | Managed-folder/source-identity and flat-archive collision tests | Automated pass |
+| EX-03 | Busy, changing, linked, encrypted, partial, or unsafe inputs remain in place | Negative archive fixtures, nested same-size writes with restored mtime, held child lock, changed tree/source, and traversal checks | Automated pass |
+| EX-04 | Whole-directory moves preserve data and never merge or flatten | Real temporary-directory move/collision tests; actual controller manual/deep processing while paused and delayed; partial extraction protection | Automated pass |
+| EX-05 | Delay and pause remain effective; a day change catches up eligible folders | Real controller and stores with an injected calendar date, real finalization timers, FSEvents, and filesystem moves | Automated/controller pass; real overnight/wake pending |
+| EX-06 | The installed app works with actual extraction utilities | Settings/UI interaction and live Archive Utility/third-party extraction trials | Manual pending |
+
+September 30 evidence: 167 tests passed with strict concurrency and Swift warnings as errors. An unsigned universal Release build contains `arm64` and `x86_64`; the local Debug app was installed with signature validation and launched from `/Applications/DayDrop.app`. The bundled libarchive license is present. These checks do not establish a notarized release, minimum-OS runtime compatibility, or full extraction-utility UI acceptance.
+
 ## Panel readability
 
 | ID | Acceptance criterion | Evidence | Status |
@@ -73,7 +95,31 @@ This matrix separates deterministic automated evidence from signed-app and real-
 | UP-03 | Published update metadata and packages cannot be substituted by a website-only compromise | Signed appcast/release-notes/archive verification, Developer ID, notarization, extraction-before-validation setting | Cryptographic pipeline pass; end-to-end install pending |
 | UP-04 | Homepage, current DMG, checksum, and latest appcast entry always publish the same version | Local preflight plus immutable Pages URL and production-domain download verification | Automated and live deployment pass |
 
-## Current development evidence — 2026-08-26
+## Current release-package evidence — 2026-10-06
+
+- DayDrop 1.4.0 build 12 adds extracted ZIP/RAR/RAR5/7z folder recognition and intact moves, with source/metadata/lock checks, ten-second stabilization, and explicit RAR volume rejection.
+- All 167 tests passed with strict concurrency/source-warnings settings; Release static analysis and the universal `arm64`/`x86_64` build passed.
+- Developer ID signatures, hardened runtime, sandbox/bookmark/Sparkle entitlements, package versions, and the Applications shortcut passed release validation.
+- Apple submission `c9342ac8-7d66-4ac4-b21f-83aabb39a37b` returned `Accepted` with no issues. Stapler and Gatekeeper checks passed for both the DMG and mounted app.
+- Package SHA-256: `a7bc32e23eb438bed97bc84ebf3bbe0ba58efe32fcc0e2cf46eea3cad412d229`.
+- Sparkle signature verification passed for the appcast, 1.4.0 archive, and release notes. Production feed and release-note bytes match their local signed files.
+- `https://f7d58663.liveby-web.pages.dev` and `https://daydrop.liveby.app` passed homepage/feed version and full-package hash checks. Browser DOM checks confirmed all current links and no horizontal overflow at 1579 px and 390 px; screenshot-based visual acceptance is not claimed.
+- The same notarized DMG was used to install `/Applications/DayDrop.app`; installed version/build are 1.4.0/12. Its executable matches the mounted package hash, Developer ID/Gatekeeper checks passed, and the installed-path process launched. The prior app remains recoverable from Trash.
+- Direct Sparkle UI installation, actual extraction-utility trials, real overnight/wake processing, minimum-OS runtime compatibility, and the other manual acceptance items remain open.
+
+## Archived release-package evidence — 2026-09-28
+
+- DayDrop 1.3.0 build 11 includes delayed organization, duplicate-index recovery, and modification-time sorting.
+- 148 XCTest cases and Release static analysis passed with strict concurrency/source-warnings checks. The packaging retry reused these results; only the script's architecture check changed before rebuilding.
+- The universal app and DMG passed Developer ID signature, entitlement, hardened-runtime, `arm64`/`x86_64`, mounted-bundle version, and Applications-shortcut checks.
+- Apple submission `f32bf68f-d26e-4ff8-9241-04228fb78998` returned `Accepted` with no issues. Stapler validation passed; Gatekeeper accepted both the DMG and mounted app as `Notarized Developer ID`.
+- Package SHA-256: `ed7b9c7aa8f2728151b254d9cacfc1b2f7562d7d6c37bb11a6c37e8a7fadaacb`.
+- Sparkle cryptographic verification passed for the signed appcast, 1.3.0 archive, and release notes. Every retained archive/delta URL has a local file with the advertised length.
+- Cloudflare Pages `https://88906af8.liveby-web.pages.dev` and `https://daydrop.liveby.app` passed homepage/feed version and complete-DMG hash verification. Initial production propagation returned stale content before the bounded retry succeeded.
+- Production browser DOM checks confirmed 1.3.0, all five current download links, and no horizontal overflow at 1579 px and 390 px. Screenshot capture timed out; visual inspection is not claimed.
+- Direct notarized-app installation, Sparkle installation, real overnight/wake processing, and the other manual acceptance items above remain unverified by this release run.
+
+## Archived development evidence — 2026-08-26
 
 - The 2026-08-14 source adds per-file vnode finalization monitoring and a two-second
   metadata/event quiet window. Tests cover a preallocated same-size file receiving an
@@ -99,7 +145,7 @@ This matrix separates deterministic automated evidence from signed-app and real-
 - `npm run publish:web` published the prepared 1.2.2 site to Cloudflare Pages and verified the homepage version/link, latest appcast entry, and complete DMG SHA-256 against both the immutable deployment URL and production custom domain.
 - These checks do not establish visual polish, VoiceOver quality, Developer ID behavior, Intel compatibility of the Debug build, minimum-macOS compatibility, or public-release readiness.
 
-## Current release-package evidence — 2026-08-26
+## Archived release-package evidence — 2026-08-26
 
 - 129 XCTest cases passed on macOS 27 with strict concurrency checking and source warnings treated as errors.
 - `xcodebuild analyze` passed.

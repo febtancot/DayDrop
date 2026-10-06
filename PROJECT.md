@@ -2,7 +2,7 @@
 
 ## Current status
 
-The PRD v1.1 MVP, recursive read-only Downloads indexing, restart-stable managed-folder identity, a two-second finalization quiet window, reliable persistent update reminders, target-display Finder opening, and an opaque appearance-aware menu-bar surface are implemented and shipped in DayDrop 1.2.2 (build 10). The release pipeline passed 129 tests on macOS 27, strict warnings-as-errors compilation, static analysis, universal build, Developer ID signing, Apple notarization, stapling, Gatekeeper checks, signed Appcast generation, Cloudflare Pages publication, and production package consistency verification. Installed 1.2.2 visual inspection, signed real-browser, permission-denial, login-item, notification, Sparkle updater installation, index UI, broader visual, minimum-OS, and large-tree performance acceptance remain open.
+DayDrop 1.4.0 (build 12) is published and installed locally as a Developer ID-signed, notarized universal app. It adds ZIP/RAR/RAR5/7z extracted-folder recognition and intact moves while preserving delay/pause behavior. The release passed 167 tests, strict concurrency/source-warnings checks, Release static analysis, universal build, signing/entitlement checks, Apple notarization, stapling, Gatekeeper assessment, signed feed generation, and complete-package hash checks on both the Pages deployment and production domain. The installed version/build and executable hash match the release package. Actual extraction-utility trials, direct Sparkle UI installation, real overnight/wake behavior, minimum-OS runtime compatibility, broader visual acceptance, and large-tree performance remain open.
 
 - Native macOS 13+ menu-bar app and first-run onboarding.
 - Security-scoped Downloads-folder authorization with no direct-path fallback.
@@ -21,6 +21,25 @@ The PRD v1.1 MVP, recursive read-only Downloads indexing, restart-stable managed
 
 ## Current focus
 
+Version 1.4.0 ships conservative extracted-folder recognition and intact directory moves, archive lookup after the source has been organized, ten-second stabilization, final tree/identity/lock checks, collision handling, manual/deep protection, and Settings control. RAR volume flags are rejected explicitly because a first-volume fixture showed that the system library could otherwise return a partial manifest. The October 6 release passed all 167 tests and was published and installed from its notarized DMG. Real extraction-application compatibility remains distinct from fixture/controller evidence.
+
+The published 1.3.0 release includes optional delayed organization in Settings. The switch
+defaults off; enabling it retains today's downloads and catches up yesterday's and
+older top-level files on midnight, wake, startup, or resume. Policy, persistence, and
+temporary-directory routing tests are automated; installed UI and real overnight
+sleep/wake acceptance remain pending; startup catch-up was observed in the September 24 Debug installation.
+
+The September 24 delayed-organization investigation found installed-app crashes in
+`DownloadsIndexStore.reconcile`: duplicate current paths trapped at dictionary
+construction, including during startup before overdue processing. Development source
+now recovers legacy duplicates while retaining history and validates new scan entries
+before writing them. The same crash was reproduced with a temporary legacy database;
+all 148 tests and the Debug build pass. The updated local installation stayed running
+and automatically caught up 36 September 23 files into `Day 2026-09-23`, preserving
+their filesystem identities. Today's file paths remained at the Downloads root.
+One remaining September 23 document was advisory-locked and its companion was hidden,
+so both were correctly left in place. Real overnight/wake acceptance remains separate.
+
 Complete visual and signed real-Mac acceptance against the notarized distribution artifact.
 
 ## Milestones
@@ -28,9 +47,9 @@ Complete visual and signed real-Mac acceptance against the notarized distributio
 1. Native project and tested date/path core — complete.
 2. Authorization, monitoring, move/migration engine, history, and notifications — implemented.
 3. Menu-bar and first-run UI — implemented and iterated from user screenshots; systematic visual/VoiceOver/minimum-OS acceptance remains pending.
-4. Automated verification — current source passes 129 tests, strict concurrency/warnings-as-errors compilation, Release static analysis, and an `arm64` + `x86_64` universal Release build. The 1.2.2 artifact adds the shared opaque menu-bar surface while preserving the existing authorization, organization, indexing, and Finder flows.
+4. Automated verification — current source passes 167 tests, strict concurrency/source-warnings checks, Release static analysis, and an `arm64` + `x86_64` universal Release build. The 1.4.0 artifact also includes extracted-folder recognition and intact moves.
 5. Development installation — `npm run mac` builds, safely replaces `/Applications/DayDrop.app`, verifies, and launches the arm64 Debug app; complete.
-6. Distribution packaging — DayDrop 1.2.2 universal Developer ID DMG, `.p8` notarization, stapling, Gatekeeper verification, signed Sparkle feed, Cloudflare Pages publication, and production download consistency verification complete; direct 1.2.2 installation and Sparkle updater installation remain pending.
+6. Distribution packaging — DayDrop 1.4.0 universal Developer ID DMG, notarization, stapling, Gatekeeper, signed feed/release notes, Pages publication, production hash verification, and direct local DMG installation complete. Direct Sparkle UI installation remains pending.
 
 ## Risks and dependencies
 
@@ -52,7 +71,7 @@ Complete visual and signed real-Mac acceptance against the notarized distributio
 ## Next actions
 
 - Confirm the production bundle identifier, signing identity ownership, and distribution channel.
-- Run the remaining release acceptance against `dist/DayDrop-1.2.2.dmg`; do not substitute the installed Debug app as release-package evidence.
+- Run the remaining release acceptance against `dist/DayDrop-1.4.0.dmg`; do not substitute the installed Debug app as release-package evidence.
 - Run `ACCEPTANCE.md` signed-app checks in Safari, Chrome, Edge, and Firefox.
 - Perform a focused visual pass for the compact toggle states, today-module hit targets, Settings navigation, and onboarding scrolling.
 - Run a signed compatibility pass on the minimum supported macOS 13 Ventura runtime.

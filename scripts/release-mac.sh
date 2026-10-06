@@ -336,7 +336,9 @@ if [[ -z "$submission_id" ]]; then
     entitlements_dump=""
 
     architectures=$(lipo -archs "$app/Contents/MacOS/DayDrop")
-    lipo "$app/Contents/MacOS/DayDrop" -verify_arch arm64 x86_64 || {
+    # Check complete architecture tokens: some Xcode lipo versions reject
+    # -verify_arch even when -archs successfully reads the universal binary.
+    [[ " $architectures " == *" arm64 "* && " $architectures " == *" x86_64 "* ]] || {
         print -u2 "错误：Release 应用不是 arm64 + x86_64 通用构建：$architectures"
         exit 1
     }

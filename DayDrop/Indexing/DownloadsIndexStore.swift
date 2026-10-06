@@ -15,16 +15,35 @@ enum DownloadFilePresenceFilter: String, CaseIterable, Sendable {
     }
 }
 
+enum DownloadFileModificationSortOrder: String, CaseIterable, Sendable {
+    case newestFirst
+    case oldestFirst
+
+    var displayName: String {
+        switch self {
+        case .newestFirst: return "最新修改"
+        case .oldestFirst: return "最早修改"
+        }
+    }
+}
+
 struct DownloadFileFilter: Equatable, Sendable {
     var searchText = ""
     var category: HistoryFileCategory?
     var presence: DownloadFilePresenceFilter = .current
+    var modificationSortOrder: DownloadFileModificationSortOrder = .newestFirst
 
     static let current = DownloadFileFilter()
+
+    var hasActiveFilters: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || category != nil
+            || presence != .current
+    }
 }
 
 struct DownloadFileCursor: Equatable, Sendable {
-    let lastSeenAt: Date
+    let modificationDate: Date?
     let id: UUID
 }
 
@@ -104,6 +123,7 @@ enum DownloadsIndexStoreError: Error, LocalizedError {
     case bind(String)
     case step(String)
     case invalidRecord
+    case conflictingSnapshots
     case unsupportedSchema(Int32)
 
     var errorDescription: String? {
@@ -114,6 +134,8 @@ enum DownloadsIndexStoreError: Error, LocalizedError {
         case .bind(let message): return "无法绑定下载文件索引查询：\(message)"
         case .step(let message): return "无法读取或写入下载文件索引：\(message)"
         case .invalidRecord: return "下载文件索引中包含无法解析的记录。"
+        case .conflictingSnapshots:
+            return "扫描时同一路径出现不同的文件信息，已保留原索引，等待下次扫描。"
         case .unsupportedSchema(let version):
             return "下载文件索引版本 \(version) 高于当前应用支持的版本。"
         }
@@ -191,29 +213,44 @@ actor DownloadsIndexStore {
         _ snapshots: [DownloadFileSnapshot],
         observedAt: Date = Date()
     ) throws -> DownloadIndexReconciliationSummary {
+        let snapshots = try Self.uniqueSnapshots(snapshots)
         let shouldRecordChanges = try isInitialized()
         let current = try currentRecords()
         var unmatchedOld = Dictionary(uniqueKeysWithValues: current.map { ($0.id, $0) })
         var unmatchedSnapshotIndices = Set(snapshots.indices)
         var matches: [(IndexedDownloadFile, DownloadFileSnapshot)] = []
 
-        // Exact path + identity matches are unambiguous, including hard links.
-        let oldByPath = Dictionary(uniqueKeysWithValues: current.map { ($0.relativePath, $0) })
+        // Older versions could persist repeated scanner entries. Group instead of
+        // trapping on duplicate paths, and keep the oldest matching record so its
+        // change history survives. Surplus rows become unavailable in the same
+        // transaction, rather than being mistaken for moves of a hard link.
+        let oldByPath = Dictionary(grouping: current, by: \.relativePath)
+        var redundantOldIDs: Set<UUID> = []
         for index in snapshots.indices {
             let snapshot = snapshots[index]
-            guard let old = oldByPath[snapshot.relativePath],
-                  FileSystemIdentity.identifiersMatchAtSamePath(
-                      old.fileSystemIdentity,
-                      snapshot.fileSystemIdentity
-                  )
-            else { continue }
+            let matchingRecords = (oldByPath[snapshot.relativePath] ?? [])
+                .filter {
+                    FileSystemIdentity.identifiersMatchAtSamePath(
+                        $0.fileSystemIdentity,
+                        snapshot.fileSystemIdentity
+                    )
+                }
+                .sorted {
+                    if $0.firstSeenAt != $1.firstSeenAt { return $0.firstSeenAt < $1.firstSeenAt }
+                    return $0.id.uuidString < $1.id.uuidString
+                }
+            guard let old = matchingRecords.first else { continue }
+            redundantOldIDs.formUnion(matchingRecords.dropFirst().map(\.id))
             matches.append((old, snapshot))
             unmatchedOld.removeValue(forKey: old.id)
             unmatchedSnapshotIndices.remove(index)
         }
 
         // A unique remaining identity on both sides is a safe move/rename match.
-        let oldGroups = Dictionary(grouping: unmatchedOld.values, by: \.fileSystemIdentity)
+        let oldGroups = Dictionary(
+            grouping: unmatchedOld.values.filter { !redundantOldIDs.contains($0.id) },
+            by: \.fileSystemIdentity
+        )
         let newGroups = Dictionary(grouping: unmatchedSnapshotIndices, by: {
             snapshots[$0].fileSystemIdentity
         })
@@ -298,6 +335,25 @@ actor DownloadsIndexStore {
         )
     }
 
+    private static func uniqueSnapshots(_ snapshots: [DownloadFileSnapshot]) throws -> [DownloadFileSnapshot] {
+        var byPath: [String: DownloadFileSnapshot] = [:]
+        var unique: [DownloadFileSnapshot] = []
+        for snapshot in snapshots {
+            if let previous = byPath[snapshot.relativePath] {
+                // Identical entries are harmless enumeration duplicates. Different
+                // identities or metadata mean the scan raced a file change; fail
+                // before touching the database instead of guessing which is current.
+                guard previous == snapshot else {
+                    throw DownloadsIndexStoreError.conflictingSnapshots
+                }
+            } else {
+                byPath[snapshot.relativePath] = snapshot
+                unique.append(snapshot)
+            }
+        }
+        return unique
+    }
+
     func page(
         filter: DownloadFileFilter = .current,
         after cursor: DownloadFileCursor? = nil,
@@ -323,7 +379,7 @@ actor DownloadsIndexStore {
         let hasMore = records.count > safeLimit
         if hasMore { records.removeLast() }
         let nextCursor = hasMore ? records.last.map {
-            DownloadFileCursor(lastSeenAt: $0.lastSeenAt, id: $0.id)
+            DownloadFileCursor(modificationDate: $0.modificationDate, id: $0.id)
         } : nil
         return DownloadFilePage(records: records, nextCursor: nextCursor, totalCount: totalCount)
     }
@@ -556,13 +612,22 @@ actor DownloadsIndexStore {
         cursor: DownloadFileCursor?
     ) -> (sql: String, bindings: [Binding]) {
         let predicate = predicateSQL(filter: filter, cursor: cursor)
+        let orderClause: String
+        switch filter.modificationSortOrder {
+        case .newestFirst:
+            // SQLite sorts NULL below every numeric value in descending order.
+            orderClause = "modification_date DESC, id DESC"
+        case .oldestFirst:
+            // Keep unknown modification dates at the end in both directions.
+            orderClause = "modification_date IS NULL ASC, modification_date ASC, id ASC"
+        }
         return (
             """
             SELECT id, file_system_identity, relative_path, file_name, size,
                    creation_date, modification_date, file_category, is_package,
                    first_seen_at, last_seen_at, is_present, unavailable_since
             FROM indexed_files \(predicate.sql)
-            ORDER BY last_seen_at DESC, id DESC LIMIT ?;
+            ORDER BY \(orderClause) LIMIT ?;
             """,
             predicate.bindings
         )
@@ -592,10 +657,28 @@ actor DownloadsIndexStore {
         case .all: break
         }
         if let cursor {
-            clauses.append("(last_seen_at < ? OR (last_seen_at = ? AND id < ?))")
-            bindings.append(.double(cursor.lastSeenAt.timeIntervalSince1970))
-            bindings.append(.double(cursor.lastSeenAt.timeIntervalSince1970))
-            bindings.append(.text(cursor.id.uuidString))
+            if let modificationDate = cursor.modificationDate {
+                let comparison: String
+                let idComparison: String
+                switch filter.modificationSortOrder {
+                case .newestFirst:
+                    comparison = "<"
+                    idComparison = "<"
+                case .oldestFirst:
+                    comparison = ">"
+                    idComparison = ">"
+                }
+                clauses.append(
+                    "(modification_date IS NULL OR modification_date \(comparison) ? OR (modification_date = ? AND id \(idComparison) ?))"
+                )
+                bindings.append(.double(modificationDate.timeIntervalSince1970))
+                bindings.append(.double(modificationDate.timeIntervalSince1970))
+                bindings.append(.text(cursor.id.uuidString))
+            } else {
+                let idComparison = filter.modificationSortOrder == .newestFirst ? "<" : ">"
+                clauses.append("(modification_date IS NULL AND id \(idComparison) ?)")
+                bindings.append(.text(cursor.id.uuidString))
+            }
         }
         return (clauses.isEmpty ? "" : "WHERE " + clauses.joined(separator: " AND "), bindings)
     }
