@@ -162,5 +162,6 @@ if [[ -n "$base_url" ]]; then
         exit 1
     }
 
+    node "$project_dir/scripts/verify-stats-access.mjs" "$base_url"
     print "线上网站发行内容一致：$base_url · DayDrop $project_version"
 fi

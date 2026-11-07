@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="DayDrop 官网下载、应用内更新包与更新检查的汇总统计。">
+<title>下载与更新统计 · DayDrop</title>
+<link rel="icon" href="/assets/daydrop-icon.png">
+<link rel="stylesheet" href="/assets/stats.css">
+<script src="/assets/stats.js" defer></script>
+</head>
+<body>
+<header><div class="header-inner"><a class="brand" href="/"><img src="/assets/daydrop-icon.png" alt="">DayDrop <span>统计</span></a><div class="account"><a class="back" href="/">返回官网 ↗</a><button id="logout" class="refresh">退出</button></div></div></header>
+<main>
+  <div class="intro"><p class="eyebrow">DAYDROP / DOWNLOADS & UPDATES</p><h1>每一次下载，<br class="mobile-break">每一步更新。</h1><p class="subtitle">查看官网分发与应用内更新的请求趋势。</p></div>
+  <div class="toolbar"><div class="periods" role="group" aria-label="统计时间范围"><button data-days="7" aria-pressed="false">近 7 天</button><button data-days="30" aria-pressed="true">近 30 天</button><button data-days="90" aria-pressed="false">近 90 天</button></div><button id="refresh" class="refresh">刷新数据 <span aria-hidden="true">↻</span></button></div>
+  <p id="status" class="status" role="status" aria-live="polite">正在加载统计…</p>
+  <div id="error" role="alert" hidden><strong>暂时无法读取统计</strong><p>请稍后点击「刷新数据」重试。下载与应用更新不受影响。</p></div>
+  <div id="results" aria-busy="true">
+    <section class="cards" aria-label="所选时段请求总数">
+      <article class="metric"><p>官网入口下载</p><strong id="website">—</strong><span>从官网按钮发起</span></article>
+      <article class="metric"><p>应用内更新包</p><strong id="update">—</strong><span id="delta">完整包与增量包</span></article>
+      <article class="metric"><p>应用内更新检查</p><strong id="check">—</strong><span>自动与手动检查合计</span></article>
+      <article class="metric"><p>其他直接下载</p><strong id="direct">—</strong><span>未识别为官网或应用内来源</span></article>
+    </section>
+    <section class="panel trend"><div class="panel-head"><div><h2>每日趋势</h2><p id="range">按北京时间汇总</p></div><label class="select-label">指标 <select id="metric"><option value="website">官网入口下载</option><option value="update">应用内更新包</option><option value="check">更新检查</option><option value="direct">其他直接下载</option></select></label></div>
+      <div id="chart" class="chart" role="img" aria-label="正在加载每日趋势"></div><p id="chart-note" class="muted">统计从接入后开始记录，不回填历史数据。</p>
+      <details><summary>查看每日数值</summary><div class="table-scroll"><table><caption class="sr-only">每日请求明细</caption><thead><tr><th>日期</th><th>官网入口</th><th>更新包</th><th>更新检查</th><th>直接下载</th></tr></thead><tbody id="daily"></tbody></table></div></details>
+    </section>
+    <section class="panel"><div class="panel-head"><div><h2>版本明细</h2><p>下载按目标版本；更新检查按当前客户端版本</p></div><span class="tag">所选时段</span></div><div class="table-scroll"><table><caption class="sr-only">按版本汇总的下载与更新请求</caption><thead><tr><th>版本</th><th>官网入口</th><th>更新包</th><th>其中增量包</th><th>更新检查</th><th>直接下载</th></tr></thead><tbody id="versions"><tr><td colspan="6" class="empty">等待统计数据</td></tr></tbody></table></div></section>
+  </div>
+  <section class="notes"><h2>这些数字代表什么？</h2><div class="notes-grid"><p><strong>请求次数，不是安装人数</strong>仅记录服务器成功响应的下载起始请求和更新检查。无法确认下载完成、安装成功或独立用户数。</p><p><strong>统计从接入后开始</strong>后续续传分段、常见爬虫和发布校验请求不计入。重复下载、初始分段重试和增量失败后改用完整包可能重复计数；缓存命中也可能使请求未到达服务器。</p><p><strong>只保存汇总计数</strong>按北京时间、版本和请求类型汇总。不在统计库中保存 IP、设备标识、原始 User-Agent 或文件信息；来源识别不能保证完全准确。</p></div></section>
+</main>
+<footer><span>DayDrop — Downloads, day by day.</span><a href="/#privacy">隐私说明 ↗</a></footer>
+</body></html>

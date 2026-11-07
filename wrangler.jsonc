@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "daydrop",
+  "pages_build_output_dir": "./Product_Site",
+  "compatibility_date": "2026-08-11",
+  "d1_databases": [
+    {
+      "binding": "STATS_DB",
+      "database_name": "daydrop-stats",
+      "database_id": "74859a09-07bb-4532-82f3-eba6f167f78c",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

@@ -77,3 +77,7 @@ Complete visual and signed real-Mac acceptance against the notarized distributio
 - Run a signed compatibility pass on the minimum supported macOS 13 Ventura runtime.
 - Profile idle CPU and resident memory in a release-like build.
 - Visually verify File Query current/unavailable/history scopes and measure initial/reconciliation scans against a large Downloads hierarchy.
+
+## Website statistics deployed — 2026-10-28
+
+Private download/update statistics are live at https://daydrop.liveby.app/stats with D1 and password protection. Deployment `de399f29-dd5b-43f7-a646-11234a14a930` passed production/deployment-domain access and release-content checks. Four controlled requests verified counting and were precisely subtracted afterward; production login, filters, empty state, logout and desktop/mobile layouts were verified. This does not establish a real Sparkle client upgrade. See [WEB_STATS.md](WEB_STATS.md).

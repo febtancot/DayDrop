@@ -13,7 +13,11 @@
     "appcast:mac": "zsh scripts/generate-appcast.sh",
     "prepare:web": "zsh scripts/prepare-web-release.sh",
     "verify:web": "zsh scripts/verify-web-release.sh",
-    "publish:web": "zsh scripts/publish-web.sh"
+    "publish:web": "zsh scripts/publish-web.sh",
+    "catalog:web": "python3 scripts/generate-stats-catalog.py",
+    "dev:web": "npm run catalog:web && wrangler pages dev Product_Site --ip 127.0.0.1 --port 8796",
+    "test:web": "node --test tests/web/*.test.mjs",
+    "db:local": "wrangler d1 migrations apply daydrop-stats --local"
   },
   "devDependencies": {
     "wrangler": "^4.121.0"

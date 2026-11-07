@@ -25,6 +25,10 @@ for command_name in grep npx sleep tail tee; do
         exit 1
     }
 done
+python3 "$project_dir/scripts/generate-stats-catalog.py"
+# Refuse to publish a page with an unconfigured statistics database.
+node -e 'const fs = require("node:fs"); const c = JSON.parse(fs.readFileSync("wrangler.jsonc", "utf8")); if (!c.d1_databases?.[0]?.database_id || c.d1_databases[0].database_id.startsWith("00000000-")) { console.error("错误：请先创建并配置统计 D1 数据库。"); process.exit(1); }'
+npm run test:web
 "$project_dir/scripts/verify-web-release.sh"
 
 print "正在发布 Product_Site 到 Cloudflare Pages 项目 $pages_project…"

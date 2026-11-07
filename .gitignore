@@ -17,3 +17,8 @@ raw/
 
 # macOS Finder metadata
 ._*
+
+# Local Cloudflare data and secrets
+.wrangler/
+.dev.vars*
+.env*

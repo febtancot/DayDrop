@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "include": ["/api/*", "/stats", "/stats/", "/stats.html", "/stats-login", "/stats-login.html", "/downloads/*", "/updates/appcast.xml"],
+  "exclude": ["/downloads/*.sha256", "/downloads/*.md", "/downloads/old_updates/*"]
+}

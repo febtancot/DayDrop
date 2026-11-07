@@ -138,3 +138,7 @@ This command generates and builds the arm64 Debug app, terminates DayDrop, moves
 - The release workflow also re-signs Sparkle's nested helpers with the same Developer ID identity, generates `Product_Site/updates/appcast.xml` with EdDSA signatures, stages the DMG/checksum, updates every homepage release reference from the project version, and runs a cross-artifact consistency check. The private update key never enters the repository or website.
 - Deployment remains an explicit second step: `npm run publish:web` first revalidates local release content, deploys `Product_Site` to the `daydrop` Cloudflare Pages project, and then downloads and verifies the homepage, appcast, and complete DMG from both the immutable deployment URL and production custom domain.
 - [Unknown] Mac App Store entitlements and distribution-channel automation await distribution decisions.
+
+## Website download statistics
+
+`Product_Site/_worker.js` adds Pages request counters backed by D1 and a password-protected `/stats` page and `/api/stats` endpoint. Counts distinguish website downloads, Sparkle full/delta packages, update checks, and direct downloads. Signed feed and package bytes are forwarded unchanged; statistics failures do not block downloads. See [WEB_STATS.md](WEB_STATS.md) for counting limits, authentication, local validation, and the verified production deployment of 2026-10-28.
